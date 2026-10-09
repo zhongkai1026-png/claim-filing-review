@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>破产管理人债权申报与审查系统</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand" onclick="location.hash='#/projects'">
+      <span class="brand-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="30" height="30" aria-hidden="true">
+          <defs>
+            <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#4c6ef5"/>
+              <stop offset="1" stop-color="#1d39c4"/>
+            </linearGradient>
+          </defs>
+          <rect x="1" y="1" width="46" height="46" rx="12" fill="url(#brandGrad)"/>
+          <g stroke="#ffffff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M24 11v15"/>
+            <path d="M10 15h28"/>
+            <path d="M10 15l-6 9"/>
+            <path d="M38 15l-6 9"/>
+            <path d="M2.5 23a6.5 6.5 0 0 0 13 0"/>
+            <path d="M32.5 23a6.5 6.5 0 0 0 13 0"/>
+            <path d="M19 33h10"/>
+            <path d="M21.5 33v-3.5h5V33"/>
+            <path d="M22.5 29.5h3"/>
+          </g>
+        </svg>
+      </span>
+      <div>
+        <div class="brand-title">债权申报与审查系统</div>
+        <div class="brand-sub">破产管理人工作台</div>
+      </div>
+    </div>
+    <nav class="topnav" id="topnav"></nav>
+    <div class="topbar-right">
+      <div class="project-switcher" id="projectSwitcher"></div>
+      <span class="ai-badge" id="aiBadge">AI 未配置</span>
+      <button class="btn btn-sm" onclick="openAISettings()" title="AI 模型配置">⚙️ AI 设置</button>
+    </div>
+  </div>
+</header>
+
+<main id="app" class="container"></main>
+
+<div id="modalRoot"></div>
+
+<script src="/js/vendor/echarts.min.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>

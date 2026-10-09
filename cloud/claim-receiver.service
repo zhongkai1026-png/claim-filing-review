@@ -1,0 +1,14 @@
+[Unit]
+Description=债权申报接收服务 (Claim Receiver)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=__APP_DIR__
+EnvironmentFile=__APP_DIR__/.env
+ExecStart=__APP_DIR__/venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port ${CLOUD_PORT}
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

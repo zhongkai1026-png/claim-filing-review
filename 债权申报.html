@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>破产债权申报 · 债权人申报页</title>
+<meta name="description" content="破产债权在线申报：填写债权信息并按证据目录上传证据材料">
+<style>
+  :root{
+    --primary:#1f4e79; --primary-2:#2e6da4; --accent:#c8a24b;
+    --bg:#f2f4f7; --card:#ffffff; --border:#dde3ea;
+    --text:#1f2733; --text-2:#5b6b7c; --danger:#c0392b; --ok:#1e8e5a;
+    --radius:10px; --shadow:0 1px 3px rgba(16,42,67,.08),0 8px 24px rgba(16,42,67,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB","Source Han Sans SC",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.6; font-size:15px;
+  }
+  /* ---------- 顶部 ---------- */
+  .hero{
+    background:linear-gradient(135deg,#17395c 0%,#1f4e79 55%,#2e6da4 100%);
+    color:#fff; padding:34px 16px 26px; text-align:center;
+    border-bottom:4px solid var(--accent);
+  }
+  .hero .badge{display:inline-block;font-size:12px;letter-spacing:2px;background:rgba(255,255,255,.14);
+    padding:4px 14px;border-radius:999px;margin-bottom:12px}
+  .hero h1{font-size:26px;font-weight:700;letter-spacing:1px}
+  .hero .sub{margin-top:6px;font-size:14px;opacity:.85}
+  .case-meta{margin-top:14px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+  .case-meta span{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);
+    padding:3px 12px;border-radius:6px;font-size:13px}
+  .case-meta b{font-weight:600;margin-right:4px}
+
+  /* ---------- 布局 ---------- */
+  .container{max-width:860px;margin:0 auto;padding:18px 16px 60px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:22px 24px;margin-bottom:18px}
+  .card h2{font-size:17px;color:var(--primary);display:flex;align-items:center;gap:10px;margin-bottom:16px}
+  .step-no{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--primary);
+    color:#fff;font-size:14px;align-items:center;justify-content:center;flex:none}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+  @media(max-width:640px){.grid-2{grid-template-columns:1fr}}
+
+  /* ---------- 表单 ---------- */
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;color:var(--text-2);margin-bottom:5px;font-weight:600}
+  .field label .req{color:var(--danger)}
+  .field input,.field select,.field textarea{
+    width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
+    font-size:15px;font-family:inherit;color:var(--text);background:#fff;transition:border .15s,box-shadow .15s;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{
+    outline:none;border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(46,109,164,.15);
+  }
+  .field textarea{resize:vertical;min-height:80px}
+  .field .hint{font-size:12px;color:var(--text-2);margin-top:4px}
+  .inline-suffix{position:relative}
+  .inline-suffix input{padding-right:44px}
+  .inline-suffix .unit{position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    color:var(--text-2);font-size:13px;pointer-events:none}
+  #recalcBtn{pointer-events:auto;line-height:1.4}
+
+  .radio-row{display:flex;gap:22px;flex-wrap:wrap;padding-top:2px}
+  .radio-row label{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text);font-weight:400;cursor:pointer}
+  .radio-row input{width:auto}
+
+  /* ---------- 证据目录（表格：默认 8 行 2 列，可添加行） ---------- */
+  .evi-wrap{margin-top:14px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+  .evi-table{width:100%;border-collapse:collapse;font-size:14px;table-layout:fixed}
+  .evi-table th{background:#f4f7fa;color:var(--primary);font-size:13px;font-weight:600;
+    text-align:left;padding:10px 12px;border-bottom:1px solid var(--border)}
+  .evi-table th.c-name,.evi-table td.c-name{width:38%}
+  .evi-table td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+  .evi-table tbody tr:last-child td{border-bottom:none}
+  .evi-table tbody tr:hover{background:#fcfdfe}
+  .evi-name{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;
+    font-size:14px;font-family:inherit;color:var(--text);background:#fff}
+  .evi-name:focus{outline:none;border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(46,109,164,.15)}
+  .evi-row-del{float:right;cursor:pointer;color:var(--text-2);font-size:12px;padding:1px 4px}
+  .evi-row-del:hover{color:var(--danger);text-decoration:underline}
+  .evi-drop{border:1px dashed #b9c6d4;background:#f8fafc;border-radius:8px;padding:7px 10px;
+    font-size:13px;color:var(--primary-2);cursor:pointer;text-align:center;transition:border .15s,background .15s}
+  .evi-drop:hover,.evi-drop.drag{background:#f0f6fc;border-color:var(--primary-2)}
+  .evi-files{margin-top:6px;display:flex;flex-direction:column;gap:4px}
+  .evi-file{display:flex;align-items:center;gap:8px;font-size:12.5px;background:#fafbfc;
+    border:1px solid var(--border);border-radius:6px;padding:4px 8px}
+  .evi-file .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .evi-file .s{color:var(--text-2);flex:none}
+  .evi-file .del{cursor:pointer;color:var(--danger);font-weight:600;flex:none}
+  .evi-file .del:hover{text-decoration:underline}
+  .evi-tools{display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
+  .evi-count{font-size:12.5px;color:var(--text-2)}
+
+  /* ---------- 声明 / 按钮 ---------- */
+  .declare{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--text)}
+  .declare input{margin-top:3px;width:auto;transform:scale(1.15)}
+  .declare .warn{color:var(--danger);font-weight:600}
+  .actions{display:flex;justify-content:center;gap:14px;margin-top:6px;flex-wrap:wrap}
+  .btn{
+    border:none;border-radius:8px;padding:11px 34px;font-size:15px;cursor:pointer;font-family:inherit;
+    transition:filter .15s,transform .05s;font-weight:600;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--primary);color:#fff}
+  .btn.primary:hover{background:var(--primary-2)}
+  .btn.ghost{background:#fff;border:1px solid var(--border);color:var(--text-2)}
+  .btn.ghost:hover{color:var(--text);border-color:#aab7c6}
+  .btn.small{padding:7px 16px;font-size:13px}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .btn.primary:disabled{background:var(--primary)}
+  .draft-tip{margin-top:14px;text-align:center;font-size:12.5px;color:var(--text-2);background:#fff8e6;
+    border:1px solid #ecd9a0;border-radius:8px;padding:7px 12px}
+  .draft-tip button{border:none;background:none;color:var(--primary-2);cursor:pointer;text-decoration:underline;font-size:12.5px}
+
+  /* ---------- 缺项目编号提示 ---------- */
+  .no-project{background:#fdf3e7;border:1px solid #e8c58a;color:#8a5a17;border-radius:10px;
+    padding:14px 18px;margin-bottom:16px;font-size:13.5px;line-height:1.8}
+  .no-project code{background:#fff;border:1px solid #e3d3b0;border-radius:4px;padding:1px 6px;font-size:12.5px}
+
+  /* ---------- 必传扫描件槽位（已改为证据目录表格，样式保留兼容旧草稿） ---------- */
+  .cert-slots{display:none}
+
+  /* ---------- 成功页 ---------- */
+  .success{text-align:center;padding:44px 24px}
+  .success .big{font-size:46px}
+  .success h2{margin:10px 0 4px;font-size:22px;color:var(--ok);justify-content:center}
+  .success .sub{color:var(--text-2);font-size:14px;margin-bottom:20px}
+  .no-box{display:inline-block;background:#f0f7f2;border:1px solid #bfe0cd;border-radius:10px;
+    padding:14px 36px;margin-bottom:20px}
+  .no-box .no{font-size:26px;font-weight:700;color:var(--ok);letter-spacing:1px;font-family:Consolas,monospace}
+  .no-box .lbl{font-size:12.5px;color:var(--text-2);margin-top:2px}
+  .sum-table{width:100%;max-width:560px;margin:0 auto 18px;border-collapse:collapse;font-size:13.5px;text-align:left}
+  .sum-table th,.sum-table td{border-bottom:1px solid var(--border);padding:7px 10px}
+  .sum-table th{color:var(--text-2);font-weight:600;width:130px;white-space:nowrap}
+  .sum-table td{color:var(--text)}
+  .success .btns{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:8px}
+  .success .note{margin-top:18px;font-size:12.5px;color:var(--text-2);max-width:520px;margin-left:auto;margin-right:auto}
+
+  footer{text-align:center;padding:22px 16px 34px;font-size:12.5px;color:var(--text-2)}
+
+  /* ---------- Toast ---------- */
+  #toastBox{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:8px;align-items:center}
+  .toast{background:#2b3a4a;color:#fff;padding:9px 22px;border-radius:999px;font-size:13.5px;
+    box-shadow:0 4px 16px rgba(0,0,0,.25);animation:fadein .2s}
+  .toast.error{background:var(--danger)}
+  @keyframes fadein{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+
+  /* ---------- 打印 ---------- */
+  @media print{
+    .hero{border:none}
+    body{background:#fff}
+    .no-print,.actions,.draft-tip,.evi-drop,.evi-tools,.evi-file .del,.evi-row-del,
+    #addEviRow,#submitBtn,#resetBtn,footer{display:none!important}
+    .card{box-shadow:none;border-color:#ccc;break-inside:avoid}
+    .success{display:block!important}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="badge">破产管理人 · 债权申报平台</div>
+  <h1 id="caseTitle">债权申报</h1>
+  <p class="sub">请如实填写债权信息并按证据目录上传证据材料，提交后请保存流水号</p>
+  <div class="case-meta" id="caseMeta"></div>
+</header>
+
+<main class="container">
+
+  <div class="no-project" id="noProjectTip" hidden>
+    ⚠️ 当前链接未携带申报项目编号（project 参数），无法提交申报。<br>
+    请使用管理人下发的完整申报链接，形如：
+    <code>http://你的域名/?project=DEMO2026&case=案号</code>
+  </div>
+
+  <form id="applyForm" novalidate>
+
+    <!-- ============ 1 债权人信息 ============ -->
+    <section class="card">
+      <h2><span class="step-no">1</span>债权人信息</h2>
+      <div class="grid-2">
+        <div class="field">
+          <label>债权人名称 <span class="req">*</span></label>
+          <input id="f_name" placeholder="单位全称 / 个人姓名" maxlength="120" autocomplete="organization">
+        </div>
+        <div class="field">
+          <label>统一社会信用代码 / 身份证号码 <span class="req">*</span></label>
+          <input id="f_credit_code" placeholder="18 位信用代码或身份证号" maxlength="30">
+        </div>
+        <div class="field">
+          <label>法定代表人 / 负责人</label>
+          <input id="f_legal_rep" maxlength="60">
+          <div class="hint">如填写，请在下方「6 上传证据材料」中列明并上传「法定代表人（负责人）身份证明书」
+            <a id="tplLegalRep" href="#" target="_blank" rel="noopener">📄 下载模板</a></div>
+        </div>
+        <div class="field">
+          <label>联系方式 <span class="req">*</span></label>
+          <input id="f_contact" placeholder="手机 / 座机" maxlength="30" autocomplete="tel">
+        </div>
+        <div class="field">
+          <label>联系地址</label>
+          <input id="f_address" placeholder="选填" maxlength="200" autocomplete="street-address">
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 2 代理人信息 ============ -->
+    <section class="card">
+      <h2><span class="step-no">2</span>代理人信息 <span class="hint" style="font-weight:400">（如委托他人办理申报，请填写）</span></h2>
+      <div class="grid-2">
+        <div class="field">
+          <label>代理人姓名</label>
+          <input id="f_agent_name" placeholder="选填" maxlength="60">
+        </div>
+        <div class="field">
+          <label>代理人身份证号码</label>
+          <input id="f_agent_id" placeholder="选填" maxlength="30">
+        </div>
+        <div class="field">
+          <label>代理人电话</label>
+          <input id="f_agent_phone" placeholder="选填" maxlength="30">
+        </div>
+      </div>
+      <div class="hint">如填写了代理人信息，请在下方「6 上传证据材料」中列明并上传「授权委托书」
+        <a id="tplPoa" href="#" target="_blank" rel="noopener">📄 下载模板</a></div>
+    </section>
+
+    <!-- ============ 3 债权信息 ============ -->
+    <section class="card">
+      <h2><span class="step-no">3</span>债权信息</h2>
+      <div class="grid-2">
+        <div class="field">
+          <label>债权种类</label>
+          <select id="f_category">
+            <option value="">请选择</option>
+            <option>借贷</option><option>购销</option><option>金融</option>
+            <option>工程款</option><option>职工</option><option>税收</option><option>其他</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>申报债权性质</label>
+          <select id="f_nature">
+            <option value="">请选择</option>
+            <option>普通债权</option><option>工程款优先权</option><option>抵押债权</option>
+            <option>税收债权</option><option>职工债权</option><option>其他</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>债权形成时间</label>
+          <input id="f_date" type="date">
+        </div>
+        <div class="field">
+          <label>担保情况</label>
+          <select id="f_guarantee">
+            <option value="">请选择</option>
+            <option>无担保</option><option>抵押担保</option><option>质押担保</option>
+            <option>保证担保</option><option>混合担保</option><option>其他</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>担保物明细及登记情况</label>
+          <textarea id="f_collateral" rows="2" placeholder="担保物名称、数量、权属及抵押/质押登记情况等（选填）" maxlength="1000"></textarea>
+        </div>
+        <div class="field">
+          <label>是否已进入诉讼 / 仲裁程序</label>
+          <div class="radio-row">
+            <label><input type="radio" name="f_litigation" value="否" checked> 否</label>
+            <label><input type="radio" name="f_litigation" value="是"> 是</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>申报日期</label>
+          <input id="f_apply_date" type="date">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>最后一次主张时间</label>
+          <input id="f_last_claim_date" type="date">
+        </div>
+        <div class="field">
+          <label>是否属于连带债权人</label>
+          <div class="radio-row">
+            <label><input type="radio" name="f_joint_creditor" value="否" checked> 否</label>
+            <label><input type="radio" name="f_joint_creditor" value="是"> 是</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>连带债权人名称</label>
+          <input id="f_joint_creditor_name" placeholder="多个用顿号分隔（选填）" maxlength="300">
+        </div>
+        <div class="field">
+          <label>是否有连带债务人</label>
+          <div class="radio-row">
+            <label><input type="radio" name="f_joint_debtor" value="否" checked> 否</label>
+            <label><input type="radio" name="f_joint_debtor" value="是"> 是</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>连带债务人名称</label>
+          <input id="f_joint_debtor_name" placeholder="多个用顿号分隔（选填）" maxlength="300">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label>申报本金（元）</label>
+          <div class="inline-suffix"><input id="f_principal" inputmode="decimal" placeholder="0.00"><span class="unit">元</span></div>
+        </div>
+        <div class="field">
+          <label>申报利息（元）</label>
+          <div class="inline-suffix"><input id="f_interest" inputmode="decimal" placeholder="0.00"><span class="unit">元</span></div>
+        </div>
+        <div class="field">
+          <label>其他费用（元）</label>
+          <div class="inline-suffix"><input id="f_others" inputmode="decimal" placeholder="0.00"><span class="unit">元</span></div>
+        </div>
+        <div class="field">
+          <label>申报总额（元）<span class="req">*</span></label>
+          <div class="inline-suffix">
+            <input id="f_amount" inputmode="decimal" placeholder="按 本金+利息+其他 自动计算">
+            <span class="unit"><button type="button" id="recalcBtn" class="btn small ghost no-print" title="按明细重新计算" style="padding:2px 8px;font-size:12px">↺ 自动</button></span>
+          </div>
+          <div class="hint">金额可填写数字或「12.5万」；填写总额后如需按明细重算，点右侧「↺ 自动」</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>补充说明</label>
+        <textarea id="f_remark" rows="3" placeholder="债权形成经过、担保情况、涉诉情况等（选填）" maxlength="2000"></textarea>
+      </div>
+    </section>
+
+    <!-- ============ 4 送达地址确认信息 ============ -->
+    <section class="card">
+      <h2><span class="step-no">4</span>送达地址确认信息 <span class="hint" style="font-weight:400">（用于接收债权审查结果通知书等文书）</span></h2>
+      <div class="grid-2">
+        <div class="field">
+          <label>地址及邮编</label>
+          <input id="f_addr" placeholder="详细地址（含邮编）" maxlength="200">
+        </div>
+        <div class="field">
+          <label>收件人</label>
+          <input id="f_recipient" maxlength="60">
+        </div>
+        <div class="field">
+          <label>电话</label>
+          <input id="f_addr_phone" maxlength="30">
+        </div>
+        <div class="field">
+          <label>电子邮箱</label>
+          <input id="f_addr_email" type="email" maxlength="80">
+        </div>
+        <div class="field">
+          <label>微信号</label>
+          <input id="f_wechat" maxlength="60">
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 5 银行账户 ============ -->
+    <section class="card">
+      <h2><span class="step-no">5</span>接受债务人财产分配的银行账户</h2>
+      <div class="grid-2">
+        <div class="field">
+          <label>户名</label>
+          <input id="f_bank_name" maxlength="120">
+        </div>
+        <div class="field">
+          <label>账号</label>
+          <input id="f_bank_no" maxlength="40" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label>开户行</label>
+          <input id="f_bank_branch" placeholder="如：中国工商银行巴中分行XX支行" maxlength="120">
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 6 上传证据材料（证据目录） ============ -->
+    <section class="card">
+      <h2><span class="step-no">6</span>上传证据材料 <span class="hint" style="font-weight:400">（证据目录：填写证据名称，逐项上传对应材料）</span></h2>
+      <div class="evi-wrap">
+        <table class="evi-table">
+          <thead>
+            <tr><th class="c-name">证据名称</th><th class="c-file">上传证据材料</th></tr>
+          </thead>
+          <tbody id="eviBody"></tbody>
+        </table>
+      </div>
+      <div class="evi-tools">
+        <button type="button" class="btn small ghost" id="addEviRow">＋ 添加一行</button>
+        <span class="evi-count" id="eviCount"></span>
+      </div>
+      <div class="hint" style="margin-top:8px">
+        默认 8 行，材料多于 8 项时点「＋ 添加一行」；每行可上传多个文件（可多选）。
+        建议逐项列明：债权凭证、合同、送货/对账单据、生效判决或调解书、担保文件、身份证明、
+        法定代表人（负责人）身份证明书、授权委托书等；扫描件请保证清晰。
+      </div>
+    </section>
+
+    <!-- ============ 声明 ============ -->
+    <section class="card declare">
+      <input type="checkbox" id="f_agree">
+      <label for="f_agree" style="font-weight:400">
+        <span class="warn">声明：</span>本人/本单位承诺所填写的债权申报信息及上传的材料真实、合法、有效，
+        并愿意对申报内容的真实性承担相应法律责任。如申报不实，自愿承担由此产生的不利后果。
+      </label>
+    </section>
+
+    <div class="actions">
+      <button type="button" id="resetBtn" class="btn ghost">重置表单</button>
+      <button type="submit" id="submitBtn" class="btn primary" style="min-width:200px">提交申报</button>
+    </div>
+
+    <div class="draft-tip" id="draftTip" hidden>
+      已自动保存草稿（刷新页面不会丢失），<button type="button" id="clearDraftBtn">清除草稿</button>
+    </div>
+  </form>
+
+  <!-- ============ 提交成功 ============ -->
+  <section class="card success" id="successCard" hidden>
+    <div class="big">✅</div>
+    <h2>申报提交成功</h2>
+    <div class="sub">您的债权申报已受理，管理人审核后会与您联系，请妥善保存申报流水号</div>
+    <div class="no-box">
+      <div class="no" id="doneNo">WS-0000</div>
+      <div class="lbl">申报流水号（请截图或抄录保存）</div>
+    </div>
+    <table class="sum-table" id="sumTable"></table>
+    <div class="btns">
+      <button type="button" class="btn primary" id="dlBtn">⬇ 下载申报材料包（ZIP）</button>
+      <button type="button" class="btn ghost" onclick="window.print()">🖨 打印 / 另存为 PDF</button>
+      <button type="button" class="btn ghost" id="againBtn">再次申报</button>
+    </div>
+    <div class="note" id="doneNote"></div>
+  </section>
+
+</main>
+
+<footer>本页面仅用于债权申报信息登记，所填信息仅用于破产程序债权审查</footer>
+
+<div id="toastBox"></div>
+
+<script>
+"use strict";
+/* ================= 工具函数 ================= */
+const $  = (s) => document.querySelector(s);
+const $$ = (s) => [...document.querySelectorAll(s)];
+function esc(s){
+  return String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function uid(){
+  return (crypto.randomUUID ? crypto.randomUUID() :
+    "id-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10));
+}
+function toast(msg, isError){
+  const t = document.createElement("div");
+  t.className = "toast" + (isError ? " error" : "");
+  t.textContent = msg;
+  $("#toastBox").appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+/* 金额解析：支持 12.5万 / 1,234.56 */
+function numVal(id){
+  const v = $(id).value.trim().replace(/[,，\s]/g, "");
+  if(!v) return 0;
+  let n;
+  if(v.endsWith("万")){ n = parseFloat(v.slice(0,-1)) * 10000; }
+  else { n = parseFloat(v); }
+  return isNaN(n) || n < 0 ? NaN : Math.round(n * 100) / 100;
+}
+function fmtMoney(n){
+  return Number(n||0).toLocaleString("zh-CN", {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function nowStr(){
+  const d = new Date(), p = (x) => String(x).padStart(2,"0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
+/* ================= 页面配置（URL 参数） ================= */
+const params = new URLSearchParams(location.search);
+/* 云端模式：api 参数指定接收服务地址；页面由接收服务托管时自动用同源地址；本地 file:// 打开则为纯本地模式 */
+const CFG = {
+  caseNo  : params.get("case")    || "",
+  debtor  : params.get("debtor")  || "",
+  manager : params.get("manager") || "",
+  deadline: params.get("deadline")|| "",
+  project : params.get("project") || "",
+  api     : (() => {
+    const a = (params.get("api") || "").trim().replace(/\/+$/, "");
+    if(a) return a;
+    if(location.protocol.startsWith("http")) return location.origin;
+    return "";
+  })()
+};
+const CLOUD_MODE = !!CFG.api;
+/* 模板下载：云端模式下从接收服务 static/templates 下载；本地 file:// 模式指向同目录文件 */
+const TEMPLATES = {
+  legalRep: "法定代表人证明文件模板.docx",
+  poa: "授权委托书模板.docx"
+};
+function setTemplateLinks(){
+  const base = CLOUD_MODE ? (CFG.api + "/templates/") : "";
+  const l1 = $("#tplLegalRep"), l2 = $("#tplPoa");
+  if(l1) l1.href = base + TEMPLATES.legalRep;
+  if(l2) l2.href = base + TEMPLATES.poa;
+}
+function renderCaseMeta(){
+  const meta = [];
+  if(CFG.caseNo)  meta.push(`<span><b>案号：</b>${esc(CFG.caseNo)}</span>`);
+  if(CFG.debtor)  meta.push(`<span><b>债务人：</b>${esc(CFG.debtor)}</span>`);
+  if(CFG.manager) meta.push(`<span><b>管理人：</b>${esc(CFG.manager)}</span>`);
+  if(CFG.deadline)meta.push(`<span><b>申报截止：</b>${esc(CFG.deadline)}</span>`);
+  if(CFG.project) meta.push(`<span><b>申报编号：</b>${esc(CFG.project)}</span>`);
+  $("#caseMeta").innerHTML = meta.join("");
+  const title = CFG.caseNo ? `${CFG.caseNo} 债权申报` : "债权申报";
+  $("#caseTitle").textContent = title;
+  document.title = title + " · 债权人申报页";
+  if(CLOUD_MODE){
+    const sub = document.querySelector(".hero .sub");
+    if(sub) sub.textContent = CFG.project
+      ? "请如实填写债权信息并按证据目录上传证据材料，提交后将同步至管理人云端系统"
+      : "⚠ 当前链接未携带项目编号，请使用管理人下发的完整申报链接";
+    const tip = $("#noProjectTip");
+    if(tip && !CFG.project){
+      tip.hidden = false;
+      const btn = $("#submitBtn");
+      if(btn){ btn.disabled = true; btn.title = "链接缺少项目编号，请联系管理人获取完整申报链接"; }
+    }
+  }
+}
+
+/* ================= IndexedDB（持久化文件与申报记录） ================= */
+const DB_NAME = "claim-apply-db", DB_VER = 1;
+let db = null;
+function openDB(){
+  return new Promise((resolve) => {
+    try{
+      const req = indexedDB.open(DB_NAME, DB_VER);
+      req.onupgradeneeded = (e) => {
+        const d = e.target.result;
+        if(!d.objectStoreNames.contains("files")) d.createObjectStore("files");
+        if(!d.objectStoreNames.contains("submissions")) d.createObjectStore("submissions", {keyPath:"no"});
+      };
+      req.onsuccess = () => { db = req.result; resolve(true); };
+      req.onerror = () => resolve(false);
+    }catch(e){ resolve(false); }
+  });
+}
+function idbPut(store, key, val){
+  return new Promise((res) => {
+    if(!db) return res(false);
+    const tx = db.transaction(store, "readwrite");
+    const os = tx.objectStore(store);
+    // submissions 存储使用内联主键(no)，不能再显式传 key；files 使用外联主键需传 key
+    const req = (store === "submissions") ? os.put(val) : os.put(val, key);
+    req.onsuccess = () => res(true);
+    req.onerror = () => res(false);
+  });
+}
+function idbGet(store, key){
+  return new Promise((res) => {
+    if(!db) return res(undefined);
+    const tx = db.transaction(store, "readonly");
+    const rq = tx.objectStore(store).get(key);
+    rq.onsuccess = () => res(rq.result);
+    rq.onerror = () => res(undefined);
+  });
+}
+function idbDel(store, key){
+  return new Promise((res) => {
+    if(!db) return res(false);
+    const tx = db.transaction(store, "readwrite");
+    tx.objectStore(store).delete(key);
+    tx.oncomplete = () => res(true);
+    tx.onerror = () => res(false);
+  });
+}
+
+/* ================= 证据目录（证据名称 + 证据材料表格） ================= */
+const MAX_FILE_MB = 50, MAX_FILES = 30, DEFAULT_EVI_ROWS = 8;
+const EVI_ACCEPT = ".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.bmp,.tif,.tiff,.webp,.zip";
+/* evidence: [{ name:"证据名称", files:[{id,name,size,type,blob}] }] */
+let evidence = [];
+
+function allFiles(){
+  return evidence.flatMap((r) => r.files);
+}
+function fileCount(){
+  return evidence.reduce((n, r) => n + r.files.length, 0);
+}
+/* 把输入框里已填写的证据名称同步回状态（重渲染/存草稿/提交前调用，避免已填内容丢失） */
+function syncEvidenceNames(){
+  $$("#eviBody input.evi-name").forEach((el, i) => {
+    if(evidence[i]) evidence[i].name = el.value;
+  });
+}
+/* 注意：渲染函数不读取 DOM，状态以 evidence 为准（否则恢复草稿/清空后会被旧 DOM 覆盖） */
+function renderEvidence(){
+  const body = $("#eviBody");
+  if(!body) return;
+  body.innerHTML = evidence.map((row, i) => {
+    const chips = row.files.map((f, j) => `<div class="evi-file">
+        <span class="n" title="${esc(f.name)}">📄 ${esc(f.name)}</span>
+        <span class="s">${(f.size / 1024 / 1024).toFixed(1)}MB</span>
+        <span class="del" data-row="${i}" data-file="${j}">✕ 移除</span>
+      </div>`).join("");
+    return `<tr data-row="${i}">
+      <td class="c-name">
+        <input class="evi-name" maxlength="80" placeholder="如：借款合同 / 债权凭证"
+          value="${esc(row.name)}">
+      </td>
+      <td class="c-file">
+        <span class="evi-row-del" data-row="${i}" title="删除本行">✕ 删除行</span>
+        <div class="evi-drop" data-row="${i}">＋ 点击上传证据材料（可多选）</div>
+        <input type="file" hidden multiple data-row="${i}" accept="${EVI_ACCEPT}">
+        <div class="evi-files">${chips}</div>
+      </td>
+    </tr>`;
+  }).join("");
+  const n = fileCount();
+  $("#eviCount").textContent = `已上传 ${n} 个文件${n > MAX_FILES ? `（超出上限 ${MAX_FILES} 个）` : ""}`;
+}
+function initEvidence(){
+  evidence = [];
+  for(let i = 0; i < DEFAULT_EVI_ROWS; i++) evidence.push({ name:"", files:[] });
+  renderEvidence();
+}
+function addEviRow(){
+  syncEvidenceNames();
+  evidence.push({ name:"", files:[] });
+  renderEvidence();
+  const rows = $$("#eviBody tr");
+  const last = rows[rows.length - 1];
+  if(last && typeof last.scrollIntoView === "function") last.scrollIntoView({ block:"nearest", behavior:"smooth" });
+  const inp = last && last.querySelector("input.evi-name");
+  if(inp) inp.focus();
+  saveDraft();
+}
+function removeEviRow(i){
+  const row = evidence[i];
+  if(!row) return;
+  syncEvidenceNames();
+  if((row.name || "").trim() || row.files.length){
+    if(!confirm("删除该行？已填写的证据名称与已上传的材料将一并移除。")) return;
+  }
+  row.files.forEach((f) => idbDel("files", f.id));
+  evidence.splice(i, 1);
+  if(!evidence.length) evidence.push({ name:"", files:[] });   // 至少保留一行
+  renderEvidence();
+  saveDraft();
+}
+function addEvidenceFiles(i, list){
+  const row = evidence[i];
+  if(!row || !list || !list.length) return;
+  syncEvidenceNames();
+  [...list].forEach((f) => {
+    if(allFiles().some((x) => x.name === f.name && x.size === f.size)){
+      toast("已上传同名同大小文件：" + f.name, true); return;
+    }
+    if(f.size > MAX_FILE_MB * 1024 * 1024){
+      toast(`「${f.name}」超过 ${MAX_FILE_MB}MB，无法上传`, true); return;
+    }
+    if(fileCount() >= MAX_FILES){
+      toast(`最多可上传 ${MAX_FILES} 个文件`, true); return;
+    }
+    const entry = { id: uid(), name: f.name, size: f.size, type: f.type || "", blob: f };
+    row.files.push(entry);
+    idbPut("files", entry.id, f);   // 草稿文件即时入库，刷新后可从草稿恢复
+  });
+  renderEvidence();
+  saveDraft();
+}
+function removeEvidenceFile(i, j){
+  const row = evidence[i];
+  if(!row || !row.files[j]) return;
+  idbDel("files", row.files[j].id);
+  row.files.splice(j, 1);
+  renderEvidence();
+  saveDraft();
+}
+/* 提交/打包用文件名：有证据名称时以「证据名称-原文件名」命名，便于管理人识别 */
+function safeSeg(s){
+  return String(s ?? "").replace(/[\\/:*?"<>|\r\n\t]/g, "_").trim();
+}
+function submitFileName(row, f){
+  const n = safeSeg(row && row.name);
+  return n ? `${n}-${f.name}` : f.name;
+}
+
+/* ================= 草稿（自动保存 / 恢复） ================= */
+const DRAFT_KEY = "claim-apply-draft-v1";
+function collectFields(){
+  return {
+    name: $("#f_name").value, credit_code: $("#f_credit_code").value,
+    legal_rep: $("#f_legal_rep").value, contact: $("#f_contact").value,
+    email: "", address: $("#f_address").value,
+    category: $("#f_category").value, nature: $("#f_nature").value,
+    date: $("#f_date").value, apply_date: $("#f_apply_date").value,
+    guarantee: $("#f_guarantee").value,
+    litigation: ($("input[name='f_litigation']:checked") || {}).value || "否",
+    principal: $("#f_principal").value, interest: $("#f_interest").value,
+    others: $("#f_others").value, amount: $("#f_amount").value,
+    remark: $("#f_remark").value, agree: $("#f_agree").checked,
+    agent_name: $("#f_agent_name").value, agent_id: $("#f_agent_id").value,
+    agent_phone: $("#f_agent_phone").value,
+    last_claim_date: $("#f_last_claim_date").value,
+    joint_creditor: ($("input[name='f_joint_creditor']:checked") || {}).value || "否",
+    joint_creditor_name: $("#f_joint_creditor_name").value,
+    joint_debtor: ($("input[name='f_joint_debtor']:checked") || {}).value || "否",
+    joint_debtor_name: $("#f_joint_debtor_name").value,
+    collateral: $("#f_collateral").value,
+    addr: $("#f_addr").value, recipient: $("#f_recipient").value,
+    addr_phone: $("#f_addr_phone").value, addr_email: $("#f_addr_email").value,
+    wechat: $("#f_wechat").value,
+    bank_name: $("#f_bank_name").value, bank_no: $("#f_bank_no").value,
+    bank_branch: $("#f_bank_branch").value
+  };
+}
+function applyFields(d){
+  const set = (id, v) => { if(v !== undefined) $(id).value = v; };
+  set("#f_name", d.name); set("#f_credit_code", d.credit_code); set("#f_legal_rep", d.legal_rep);
+  set("#f_contact", d.contact); set("#f_address", d.address);
+  set("#f_agent_name", d.agent_name); set("#f_agent_id", d.agent_id); set("#f_agent_phone", d.agent_phone);
+  set("#f_category", d.category); set("#f_nature", d.nature);
+  set("#f_date", d.date); set("#f_apply_date", d.apply_date); set("#f_guarantee", d.guarantee);
+  if(d.litigation){ const r = $(`input[name='f_litigation'][value='${d.litigation}']`); if(r) r.checked = true; }
+  set("#f_last_claim_date", d.last_claim_date);
+  if(d.joint_creditor){ const r = $(`input[name='f_joint_creditor'][value='${d.joint_creditor}']`); if(r) r.checked = true; }
+  set("#f_joint_creditor_name", d.joint_creditor_name);
+  if(d.joint_debtor){ const r = $(`input[name='f_joint_debtor'][value='${d.joint_debtor}']`); if(r) r.checked = true; }
+  set("#f_joint_debtor_name", d.joint_debtor_name);
+  set("#f_collateral", d.collateral);
+  set("#f_addr", d.addr); set("#f_recipient", d.recipient);
+  set("#f_addr_phone", d.addr_phone); set("#f_addr_email", d.addr_email); set("#f_wechat", d.wechat);
+  set("#f_bank_name", d.bank_name); set("#f_bank_no", d.bank_no); set("#f_bank_branch", d.bank_branch);
+  set("#f_principal", d.principal); set("#f_interest", d.interest); set("#f_others", d.others);
+  set("#f_amount", d.amount); set("#f_remark", d.remark);
+  if(d.agree !== undefined) $("#f_agree").checked = d.agree;
+  // 总额自动重算（不再恢复旧版草稿的 totalManual 标记，避免自动计算被永久关闭）
+  if(d.amount && !d.principal && !d.interest && !d.others){
+    totalManual = true;            // 仅手动填过总额且无明细时保留
+  } else {
+    totalManual = false;
+    recalcTotal(true);
+  }
+}
+let saveTimer = null;
+function saveDraft(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try{
+      syncEvidenceNames();
+      const d = collectFields();
+      d.evidence = evidence.map((r) => ({
+        name: r.name,
+        files: r.files.map((f) => ({id:f.id, name:f.name, size:f.size, type:f.type}))
+      }));
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+      $("#draftTip").hidden = false;
+    }catch(e){ /* localStorage 不可用时忽略 */ }
+  }, 400);
+}
+async function restoreDraft(){
+  let d = null;
+  try{ d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null"); }catch(e){}
+  if(!d) return;
+  applyFields(d);
+  // 证据目录：恢复已填名称与已上传材料（兼容旧草稿的 files / certLegal / certPoa 字段）
+  const rows = Array.isArray(d.evidence) ? d.evidence : [];
+  const legacy = [];
+  if(Array.isArray(d.files) && d.files.length) legacy.push(...d.files);
+  ["certLegal", "certPoa"].forEach((k) => { if(Array.isArray(d[k])) legacy.push(...d[k]); });
+  const total = Math.max(DEFAULT_EVI_ROWS, rows.length);
+  evidence = [];
+  for(let i = 0; i < total; i++) evidence.push({ name:"", files:[] });
+  for(let i = 0; i < rows.length; i++){
+    evidence[i].name = String(rows[i].name || "");
+    for(const f of (rows[i].files || [])){
+      const blob = await idbGet("files", f.id);
+      if(blob){ evidence[i].files.push({ id:f.id, name:f.name, size:blob.size, type:blob.type || f.type || "", blob }); }
+      else { toast("草稿中材料已丢失：" + f.name, true); }
+    }
+  }
+  // 旧草稿里的自由上传材料/扫描件，归入单独一行，避免丢失
+  if(legacy.length){
+    const target = evidence[rows.length] || evidence[0];
+    if(!target.name && !target.files.length) target.name = "其他材料（旧版草稿）";
+    for(const f of legacy){
+      const blob = await idbGet("files", f.id);
+      if(blob){ target.files.push({ id:f.id, name:f.name, size:blob.size, type:blob.type || f.type || "", blob }); }
+    }
+  }
+  renderEvidence();
+  toast("已恢复上次未提交的草稿");
+}
+function resetEvidence(){
+  allFiles().forEach((f) => idbDel("files", f.id));
+  evidence = [];
+  for(let i = 0; i < DEFAULT_EVI_ROWS; i++) evidence.push({ name:"", files:[] });
+  renderEvidence();
+}
+function clearDraft(){
+  resetEvidence();
+  localStorage.removeItem(DRAFT_KEY);
+  $("#draftTip").hidden = true;
+}
+
+/* ================= 金额联动 ================= */
+let totalManual = false;
+function recalcTotal(force){
+  if(force) totalManual = false;
+  if(totalManual) return;
+  const p = numVal("#f_principal"), i = numVal("#f_interest"), o = numVal("#f_others");
+  if(isNaN(p) || isNaN(i) || isNaN(o)) return;
+  const sum = Math.round((p + i + o) * 100) / 100;
+  $("#f_amount").value = sum ? String(sum) : "";
+}
+
+/* ================= 提交 ================= */
+function nextSubmitNo(){
+  const d = new Date(), p = (x) => String(x).padStart(2,"0");
+  const day = `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}`;
+  let n = 0;
+  try{ n = parseInt(localStorage.getItem("claim-submit-counter") || "0", 10) || 0; }catch(e){}
+  n += 1;
+  try{ localStorage.setItem("claim-submit-counter", String(n)); }catch(e){}
+  return `WS-${day}-${String(n).padStart(4,"0")}`;
+}
+function collectExtra(){
+  return {
+    claim: {
+      last_claim_date: $("#f_last_claim_date").value,
+      joint_creditor: ($("input[name='f_joint_creditor']:checked") || {}).value || "否",
+      joint_creditor_name: $("#f_joint_creditor_name").value.trim(),
+      joint_debtor: ($("input[name='f_joint_debtor']:checked") || {}).value || "否",
+      joint_debtor_name: $("#f_joint_debtor_name").value.trim(),
+      collateral: $("#f_collateral").value.trim()
+    },
+    service: {
+      address: $("#f_addr").value.trim(),
+      recipient: $("#f_recipient").value.trim(),
+      phone: $("#f_addr_phone").value.trim(),
+      email: $("#f_addr_email").value.trim(),
+      wechat: $("#f_wechat").value.trim()
+    },
+    bank: {
+      account_name: $("#f_bank_name").value.trim(),
+      account_no: $("#f_bank_no").value.trim(),
+      branch: $("#f_bank_branch").value.trim()
+    }
+  };
+}
+/* 已填写/已上传的证据行（按顺序编号，跳过空行） */
+function evidenceRows(){
+  syncEvidenceNames();
+  return evidence
+    .filter((r) => (r.name || "").trim() || r.files.length)
+    .map((r, k) => ({ seq: k + 1, name: (r.name || "").trim(), files: r.files }));
+}
+/* 证据目录清单（提交/打包/汇总共用）：行号、证据名称、该行材料文件 */
+function buildEvidenceList(){
+  return evidenceRows().map((r) => ({
+    no: r.seq,
+    name: r.name,
+    files: r.files.map((f) => ({ name: submitFileName(r, f), size: f.size, type: f.type }))
+  }));
+}
+function buildManifest(no){
+  return {
+    submit_no: no,
+    submitted_at: nowStr(),
+    case: CFG,
+    creditor: {
+      name: $("#f_name").value.trim(),
+      credit_code: $("#f_credit_code").value.trim(),
+      legal_rep: $("#f_legal_rep").value.trim(),
+      contact: $("#f_contact").value.trim(),
+      address: $("#f_address").value.trim()
+    },
+    agent: {
+      name: $("#f_agent_name").value.trim(),
+      id_no: $("#f_agent_id").value.trim(),
+      phone: $("#f_agent_phone").value.trim()
+    },
+    claim: {
+      category: $("#f_category").value,
+      nature: $("#f_nature").value,
+      date: $("#f_date").value,
+      apply_date: $("#f_apply_date").value,
+      guarantee: $("#f_guarantee").value,
+      litigation: ($("input[name='f_litigation']:checked") || {}).value || "否",
+      principal: numVal("#f_principal"),
+      interest: numVal("#f_interest"),
+      others: numVal("#f_others"),
+      amount: numVal("#f_amount"),
+      remark: $("#f_remark").value.trim(),
+      ...collectExtra().claim
+    },
+    service: collectExtra().service,
+    bank: collectExtra().bank,
+    evidence: buildEvidenceList(),
+    files: allFiles().map((f) => ({ name: f.name, size: f.size, type: f.type })),
+    declaration: "本人/本单位承诺所填写的债权申报信息及上传的材料真实、合法、有效，并愿意承担相应法律责任。"
+  };
+}
+/* 云端提交：POST multipart 到接收服务；成功返回云申报号，失败抛出错误（由调用方决定是否降级本地） */
+async function cloudSubmit(){
+  if(!CFG.project) throw new Error("链接缺少项目码（project 参数），请联系管理人获取正确链接");
+  const fd = new FormData();
+  fd.append("project", CFG.project);
+  fd.append("name", $("#f_name").value.trim());
+  fd.append("credit_code", $("#f_credit_code").value.trim());
+  fd.append("legal_rep", $("#f_legal_rep").value.trim());
+  fd.append("contact", $("#f_contact").value.trim());
+  fd.append("address", $("#f_address").value.trim());
+  fd.append("agent_name", $("#f_agent_name").value.trim());
+  fd.append("agent_id", $("#f_agent_id").value.trim());
+  fd.append("agent_phone", $("#f_agent_phone").value.trim());
+  fd.append("claim_category", $("#f_category").value);
+  fd.append("claim_nature", $("#f_nature").value);
+  fd.append("claim_date", $("#f_date").value);
+  fd.append("apply_date", $("#f_apply_date").value);
+  fd.append("guarantee", $("#f_guarantee").value);
+  fd.append("litigation", ($("input[name='f_litigation']:checked") || {}).value || "否");
+  fd.append("principal", String(numVal("#f_principal") || "0"));
+  fd.append("interest", String(numVal("#f_interest") || "0"));
+  fd.append("others", String(numVal("#f_others") || "0"));
+  fd.append("claim_amount", String(numVal("#f_amount")));
+  fd.append("remark", $("#f_remark").value.trim());
+  fd.append("extra_json", JSON.stringify(collectExtra()));
+  // 证据材料按「证据名称-原文件名」上传，管理人收到的材料与证据目录一一对应
+  syncEvidenceNames();
+  evidence.forEach((r) => r.files.forEach((f) => fd.append("files", f.blob, submitFileName(r, f))));
+
+  const r = await fetch(CFG.api + "/api/apply", { method: "POST", body: fd });
+  const j = await r.json().catch(() => ({}));
+  if(!r.ok) throw new Error(j.detail || `云端提交失败（HTTP ${r.status}）`);
+  return j.submit_no || null;
+}
+
+async function submit(e){
+  e.preventDefault();
+  const name = $("#f_name").value.trim();
+  const code = $("#f_credit_code").value.trim();
+  const contact = $("#f_contact").value.trim();
+  if(!name) return toast("请填写债权人名称", true);
+  if(!code) return toast("请填写统一社会信用代码或身份证号码", true);
+  if(!contact) return toast("请填写联系方式", true);
+  const amt = numVal("#f_amount");
+  if(isNaN(amt)) return toast("申报总额格式不正确（可填数字或如 12.5万）", true);
+  if(!amt) return toast("请填写申报总额，或填写本金/利息/其他自动计算", true);
+  if(!$("#f_agree").checked) return toast("请先勾选真实性声明", true);
+  syncEvidenceNames();
+  const filledEvidence = evidence.filter((r) => (r.name || "").trim() || r.files.length);
+  if(!fileCount()){
+    if(!confirm("尚未上传任何证据材料，确定继续提交吗？\n（建议在「6 上传证据材料」中逐项上传证据，避免因材料不足影响债权审查）")) return;
+  } else if(filledEvidence.some((r) => (r.name || "").trim() && !r.files.length)){
+    if(!confirm("有证据名称未上传对应材料，确定继续提交吗？\n（可补充上传后再提交）")) return;
+  }
+
+  const btn = $("#submitBtn");
+  btn.disabled = true; btn.textContent = "提交中…";
+  let no = null, cloudSubmitted = false;
+  try{
+    if(CLOUD_MODE){
+      try{
+        no = await cloudSubmit();
+        cloudSubmitted = !!no;
+      }catch(err){
+        const goLocal = confirm("云端提交失败：" + err.message + "\n\n是否转为本地打包方式提交？（将生成本地申报包供下载发送）");
+        if(!goLocal){ btn.disabled = false; btn.textContent = "提交申报"; return; }
+      }
+    }
+    if(!no) no = nextSubmitNo();
+    const manifest = buildManifest(no);
+
+    // 本地快照到 IndexedDB（仅用于「下载申报包」留档；失败不影响云端/本地提交结果）
+    // 快照文件使用独立 id（snapId），与草稿文件 id 分离：提交后 clearDraft 不会误删备份
+    try{
+      const snapFiles = [];
+      let idx = 0;
+      for(const r of evidenceRows()){
+        for(const f of r.files){
+          const bytes = new Uint8Array(await f.blob.arrayBuffer());
+          const snapId = `${no}-f${idx}`;
+          await idbPut("files", snapId, bytes);
+          snapFiles.push({ id: snapId, name: f.name, size: bytes.length, type: f.type,
+                           evidence_seq: r.seq, evidence_name: r.name });
+          idx += 1;
+        }
+      }
+      manifest.files = snapFiles.map((f) => ({ name:f.name, size:f.size, type:f.type }));
+      await idbPut("submissions", no, { no, manifest, files: snapFiles });
+    }catch(e){ /* 本地备份失败不阻断提交 */ }
+
+    // 展示成功页
+    $("#doneNo").textContent = no;
+    renderSummary(manifest);
+    $("#applyForm").style.display = "none";
+    $("#successCard").hidden = false;
+    const note = $("#doneNote");
+    if(cloudSubmitted){
+      note.innerHTML = "✅ <b>已提交至管理人云端系统</b>，管理人将自动接收处理。请保存申报号，也可下载申报材料包留档。";
+    } else if(CLOUD_MODE){
+      note.innerHTML = "⚠ 云端提交失败，已转为本地提交。<b>请务必点击「下载申报材料包」</b>发送给破产管理人。";
+    } else {
+      note.innerHTML = "⚠ 本页面为本地提交：申报数据与材料保存在您当前浏览器中。<b>请务必点击「下载申报材料包」</b>将 ZIP 发送给破产管理人。";
+    }
+    clearDraft();
+    window.scrollTo(0, 0);
+    toast(cloudSubmitted ? "已同步至云端，申报号 " + no : "提交成功，流水号 " + no);
+  }catch(err){
+    toast("提交失败：" + err.message, true);
+  }finally{
+    btn.disabled = false; btn.textContent = "提交申报";
+  }
+}
+function renderSummary(m){
+  const agentRow = (m.agent && (m.agent.name || m.agent.id_no || m.agent.phone))
+    ? [["代理人", [m.agent.name, m.agent.id_no, m.agent.phone].filter(Boolean).join(" / ")]] : [];
+  const evi = Array.isArray(m.evidence) ? m.evidence : [];
+  const eviHtml = evi.length
+    ? evi.map((r) => {
+        const files = (r.files || []).map((f) => esc(f.name)).join("、") || "（未上传材料）";
+        return `${r.no}. ${esc(r.name || "未命名")}：${files}`;
+      }).join("<br>")
+    : "无";
+  const rows = [
+    ["债权人名称", m.creditor.name],
+    ["信用代码/身份证", m.creditor.credit_code],
+    ["联系人", m.creditor.contact],
+    ...agentRow,
+    ["债权种类", m.claim.category || "—"],
+    ["债权性质", m.claim.nature || "—"],
+    ["申报本金", fmtMoney(m.claim.principal) + " 元"],
+    ["申报利息", fmtMoney(m.claim.interest) + " 元"],
+    ["其他费用", fmtMoney(m.claim.others) + " 元"],
+    ["申报总额", "<b>" + fmtMoney(m.claim.amount) + " 元</b>"],
+    ["证据材料", eviHtml],
+    ["提交时间", esc(m.submitted_at)]
+  ];
+  $("#sumTable").innerHTML = rows.map(([k, v]) =>
+    `<tr><th>${esc(k)}</th><td>${v}</td></tr>`).join("");
+}
+
+/* ================= ZIP（STORE，无压缩） ================= */
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for(let n = 0; n < 256; n++){
+    let c = n;
+    for(let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(bytes){
+  let c = 0xFFFFFFFF;
+  for(let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function dosDateTime(d){
+  const time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+  const date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  return { time, date };
+}
+function concatArrays(arrays){
+  const len = arrays.reduce((a, b) => a + b.length, 0);
+  const out = new Uint8Array(len); let p = 0;
+  for(const a of arrays){ out.set(a, p); p += a.length; }
+  return out;
+}
+function makeZip(entries){ // entries: [{name, data: Uint8Array}]
+  const enc = new TextEncoder();
+  const dt = dosDateTime(new Date());
+  const parts = [], central = [];
+  let offset = 0;
+  for(const e of entries){
+    const name = enc.encode(e.name);
+    const crc = crc32(e.data);
+    // 本地文件头
+    const lfh = new DataView(new ArrayBuffer(30));
+    lfh.setUint32(0, 0x04034b50, true);
+    lfh.setUint16(4, 20, true);
+    lfh.setUint16(6, 0x0800, true);          // UTF-8 文件名
+    lfh.setUint16(8, 0, true);               // 存储方式
+    lfh.setUint16(10, dt.time, true);
+    lfh.setUint16(12, dt.date, true);
+    lfh.setUint32(14, crc, true);
+    lfh.setUint32(18, e.data.length, true);
+    lfh.setUint32(22, e.data.length, true);
+    lfh.setUint16(26, name.length, true);
+    lfh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lfh.buffer), name, e.data);
+    // 中央目录记录
+    const cd = new DataView(new ArrayBuffer(46));
+    cd.setUint32(0, 0x02014b50, true);
+    cd.setUint16(4, 20, true);
+    cd.setUint16(6, 20, true);
+    cd.setUint16(8, 0x0800, true);
+    cd.setUint16(10, 0, true);
+    cd.setUint16(12, dt.time, true);
+    cd.setUint16(14, dt.date, true);
+    cd.setUint32(16, crc, true);
+    cd.setUint32(20, e.data.length, true);
+    cd.setUint32(24, e.data.length, true);
+    cd.setUint16(28, name.length, true);
+    cd.setUint16(30, 0, true); cd.setUint16(32, 0, true); cd.setUint16(34, 0, true);
+    cd.setUint16(36, 0, true);
+    cd.setUint32(38, 0, true);
+    cd.setUint32(42, offset, true);
+    central.push(new Uint8Array(cd.buffer), name);
+    offset += 30 + name.length + e.data.length;
+  }
+  const cdStart = offset;
+  const centralBytes = concatArrays(central);
+  const eocd = new DataView(new ArrayBuffer(22));
+  eocd.setUint32(0, 0x06054b50, true);
+  eocd.setUint16(4, 0, true); eocd.setUint16(6, 0, true);
+  eocd.setUint16(8, entries.length, true);
+  eocd.setUint16(10, entries.length, true);
+  eocd.setUint32(12, centralBytes.length, true);
+  eocd.setUint32(16, cdStart, true);
+  eocd.setUint16(20, 0, true);
+  return concatArrays([...parts, centralBytes, new Uint8Array(eocd.buffer)]);
+}
+function downloadBlob(blob, filename){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+}
+async function downloadPackage(){
+  const no = $("#doneNo").textContent.trim();
+  const rec = await idbGet("submissions", no);
+  if(!rec) return toast("未找到该申报记录，请重新申报", true);
+  const btn = $("#dlBtn");
+  btn.disabled = true; btn.textContent = "打包中…";
+  try{
+    const entries = [];
+    entries.push({ name: "申报信息.json", data: new TextEncoder().encode(JSON.stringify(rec.manifest, null, 2)) });
+    const used = new Set();
+    for(const f of rec.files){
+      const bytes = await idbGet("files", f.id);
+      if(!bytes) continue;
+      // 按证据目录分目录存放，便于管理人逐项核对
+      let path = "证据材料/" + f.name;
+      if(f.evidence_seq){
+        const dir = `证据材料/${String(f.evidence_seq).padStart(2, "0")} ${safeSeg(f.evidence_name) || "未命名证据"}`;
+        path = `${dir}/${f.name}`;
+      }
+      while(used.has(path)) path = path.replace(/(\.[^.]*)?$/, (m) => `_${used.size}${m || ""}`);
+      used.add(path);
+      entries.push({ name: path, data: bytes });
+    }
+    const zip = makeZip(entries);
+    downloadBlob(new Blob([zip], { type: "application/zip" }), `${no}-债权申报材料包.zip`);
+    toast("已生成申报材料包，请发送给管理人");
+  }catch(err){
+    toast("打包失败：" + err.message, true);
+  }finally{
+    btn.disabled = false; btn.textContent = "⬇ 下载申报材料包（ZIP）";
+  }
+}
+
+/* ================= 事件绑定 & 初始化 ================= */
+function bind(){
+  const body = $("#eviBody");
+  /* 点击上传区 → 打开本行文件选择框 */
+  body.addEventListener("click", (e) => {
+    const rowDel = e.target.closest(".evi-row-del");
+    if(rowDel) return removeEviRow(parseInt(rowDel.dataset.row, 10));
+    const del = e.target.closest(".evi-file .del");
+    if(del) return removeEvidenceFile(parseInt(del.dataset.row, 10), parseInt(del.dataset.file, 10));
+    const drop = e.target.closest(".evi-drop");
+    if(drop){
+      const tr = drop.closest("tr");
+      const inp = tr && tr.querySelector("input[type=file]");
+      if(inp) inp.click();
+    }
+  });
+  /* 证据名称输入 → 实时同步到状态（渲染以状态为准，避免重渲染丢字） */
+  body.addEventListener("input", (e) => {
+    const inp = e.target.closest("input.evi-name");
+    if(!inp) return;
+    const tr = inp.closest("tr");
+    const i = tr ? parseInt(tr.dataset.row, 10) : NaN;
+    if(evidence[i]) evidence[i].name = inp.value;
+  });
+  /* 选择文件（事件委托：表格重渲染后无需重新绑定） */
+  body.addEventListener("change", (e) => {
+    const inp = e.target.closest("input[type=file]");
+    if(!inp) return;
+    addEvidenceFiles(parseInt(inp.dataset.row, 10), inp.files);
+    inp.value = "";                     // 允许再次选择同一文件
+  });
+  /* 拖拽上传到某一行 */
+  ["dragover", "dragenter"].forEach((evt) => body.addEventListener(evt, (e) => {
+    const drop = e.target.closest(".evi-drop");
+    if(!drop) return;
+    e.preventDefault();
+    drop.classList.add("drag");
+  }));
+  ["dragleave", "dragend"].forEach((evt) => body.addEventListener(evt, (e) => {
+    const drop = e.target.closest(".evi-drop");
+    if(drop) drop.classList.remove("drag");
+  }));
+  body.addEventListener("drop", (e) => {
+    const drop = e.target.closest(".evi-drop");
+    if(!drop) return;
+    e.preventDefault();
+    drop.classList.remove("drag");
+    if(e.dataTransfer && e.dataTransfer.files.length){
+      addEvidenceFiles(parseInt(drop.dataset.row, 10), e.dataTransfer.files);
+    }
+  });
+  $("#addEviRow").addEventListener("click", addEviRow);
+
+  ["#f_principal", "#f_interest", "#f_others"].forEach((id) => {
+    $(id).addEventListener("input",  () => { recalcTotal(); saveDraft(); });
+    $(id).addEventListener("change", () => { recalcTotal(); saveDraft(); });
+  });
+  $("#f_amount").addEventListener("input", () => {
+    totalManual = $("#f_amount").value.trim() !== "";   // 清空总额后恢复自动计算
+    saveDraft();
+  });
+  $("#recalcBtn").addEventListener("click", () => { recalcTotal(true); saveDraft(); });
+  $("#f_amount").addEventListener("blur", () => {
+    const v = numVal("#f_amount");
+    if(!isNaN(v) && v) $("#f_amount").value = String(v);
+  });
+
+  $("#applyForm").addEventListener("input", saveDraft);
+  $("#applyForm").addEventListener("change", saveDraft);
+  $("#resetBtn").addEventListener("click", () => {
+    if(!confirm("确定重置表单？已填内容与已上传的证据材料将被清空。")) return;
+    $("#applyForm").reset();
+    totalManual = false;
+    clearDraft();
+    const today = new Date().toISOString().slice(0, 10);
+    $("#f_apply_date").value = today;
+    toast("表单已重置");
+  });
+  $("#applyForm").addEventListener("submit", submit);
+  $("#clearDraftBtn").addEventListener("click", () => { clearDraft(); toast("草稿已清除"); });
+  $("#dlBtn").addEventListener("click", downloadPackage);
+  $("#againBtn").addEventListener("click", () => {
+    $("#successCard").hidden = true;
+    $("#applyForm").style.display = "";
+    $("#applyForm").reset();
+    totalManual = false;
+    resetEvidence();
+    $("#f_apply_date").value = new Date().toISOString().slice(0, 10);
+    window.scrollTo(0, 0);
+  });
+}
+
+async function init(){
+  renderCaseMeta();
+  setTemplateLinks();
+  const today = new Date().toISOString().slice(0, 10);
+  if(!$("#f_apply_date").value) $("#f_apply_date").value = today;
+  if(!$("#f_date").value) $("#f_date").value = today;
+  initEvidence();                 // 默认 8 行 2 列证据目录
+  await openDB();
+  bind();
+  await restoreDraft();
+}
+init();
+</script>
+</body>
+</html>

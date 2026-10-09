@@ -1,0 +1,1697 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>破产管理人债权申报与审查系统 V3.1 · 项目演示</title>
+<style>
+/* ============ 基础 ============ */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#070c16;
+  font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB","Source Han Sans SC","Noto Sans CJK SC",sans-serif;
+  color:#0f172a;-webkit-font-smoothing:antialiased}
+kbd{font-family:Consolas,"Cascadia Mono",monospace;font-size:11px;background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.28);border-radius:4px;padding:1px 5px;margin-right:2px}
+code,.mono{font-family:Consolas,"Cascadia Mono",Menlo,monospace}
+
+#stagewrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(1200px 700px at 50% -10%,#16233d 0%,#0a1120 55%,#05080f 100%)}
+#stage{width:1280px;height:720px;position:relative;transform-origin:center center;
+  background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.06)}
+
+/* ============ 幻灯片壳 ============ */
+.slide{position:absolute;inset:0;padding:42px 56px 52px;background:#fff;display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;transform:translateY(10px);transition:opacity .3s ease,transform .3s ease;overflow:hidden;--a:#1d4ed8}
+.slide.active{opacity:1;pointer-events:auto;transform:none;z-index:3}
+.s-head{border-left:5px solid var(--a);padding-left:14px;margin-bottom:16px;flex:0 0 auto}
+.eyebrow{font-size:11.5px;letter-spacing:.18em;color:var(--a);font-weight:700}
+.s-head h2{font-size:28px;line-height:1.2;margin:5px 0 0;letter-spacing:-.3px}
+.lead{font-size:13.5px;color:#5a6b82;line-height:1.6;margin-top:7px}
+.lead b{color:#0f172a}
+.body{flex:1 1 auto;min-height:0;overflow:auto;padding-right:2px}
+.body::-webkit-scrollbar{width:6px}
+.body::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+.note{display:none}
+.s-foot{position:absolute;left:56px;right:56px;bottom:16px;display:flex;justify-content:space-between;
+  font-size:11px;color:#9aa8bb;letter-spacing:.02em}
+
+/* 章节配色 */
+.sec-cover{--a:#60a5fa}.sec-biz{--a:#1d4ed8}.sec-prod{--a:#0e7490}.sec-fr{--a:#4338ca}
+.sec-ai{--a:#7c3aed}.sec-data{--a:#0f766e}.sec-accept{--a:#b45309}.sec-end{--a:#334155}
+
+/* ============ 通用组件 ============ */
+.grid{display:grid;gap:11px}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}
+.g23{grid-template-columns:2fr 3fr}.g32{grid-template-columns:3fr 2fr}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 13px;
+  box-shadow:0 1px 2px rgba(15,23,42,.045);position:relative}
+.card.tint{background:var(--soft)}
+.card h4{margin:0 0 5px;font-size:13.5px;letter-spacing:-.1px}
+.card p,.card li{font-size:12px;color:#54657d;line-height:1.6;margin:0}
+.card ul{margin:5px 0 0;padding-left:15px}
+.card .num-lg{font-size:22px;font-weight:800;color:var(--a);letter-spacing:-.5px;line-height:1.1}
+.card .u{font-size:11px;color:#8b9ab0;font-weight:600;margin-left:3px}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;
+  background:#eef2ff;color:#3730a3;line-height:1.5;white-space:nowrap}
+.pill.ok{background:#dcfce7;color:#15803d}.pill.warn{background:#fef3c7;color:#b45309}
+.pill.no{background:#fee2e2;color:#b91c1c}.pill.mut{background:#eef2f6;color:#64748b}
+.pill.vk{background:#ede9fe;color:#6d28d9}
+.pill.p0{background:#fee2e2;color:#b91c1c}.pill.p1{background:#fef3c7;color:#b45309}.pill.p2{background:#e0e7ff;color:#4338ca}
+
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{background:#eef2fb;background:color-mix(in srgb,var(--a) 9%,#fff);color:#0f172a;text-align:left;
+  font-weight:700;padding:7px 9px;border-bottom:1.5px solid #dbe3f0;white-space:nowrap}
+.tbl td{padding:6.5px 9px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.55;color:#3c4a60}
+.tbl tr:nth-child(even) td{background:#fbfcfe}
+.tbl td.k{font-weight:700;color:#0f172a}
+.tbl td.c,.tbl th.c{text-align:center}
+.tbl.tight td{padding:5px 8px;font-size:12px}
+.tbl .sm{font-size:11.5px;color:#64748b}
+
+.flow{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.flow .n{background:#fff;border:1.5px solid var(--a);color:#1e293b;border-radius:8px;
+  padding:7px 11px;font-size:12.5px;font-weight:700;box-shadow:0 1px 2px rgba(15,23,42,.06)}
+.flow .n small{display:block;font-weight:500;color:#7c8aa0;font-size:10.5px;margin-top:2px}
+.flow .ar{color:#a8b6c9;font-weight:800;font-size:14px}
+.flow.v{flex-direction:column;align-items:stretch}
+.flow.v .n{width:100%}
+
+.steps{counter-reset:st;display:grid;gap:8px}
+.steps .st{display:flex;gap:10px;align-items:flex-start}
+.steps .st::before{counter-increment:st;content:counter(st);flex:0 0 20px;height:20px;border-radius:50%;
+  background:var(--a);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.steps .st .tx{font-size:12.5px;line-height:1.6;color:#3c4a60}
+.steps .st .tx b{color:#0f172a}
+
+.callout{border-left:4px solid var(--a);background:#f4f7fd;background:color-mix(in srgb,var(--a) 6%,#fff);
+  border-radius:0 8px 8px 0;padding:9px 12px;font-size:12.5px;line-height:1.6;color:#334155}
+.callout.warn{border-color:#d97706;background:#fff8eb}.callout.ok{border-color:#16a34a;background:#f2fbf5}
+.callout.no{border-color:#dc2626;background:#fef5f5}
+.callout b{color:#0f172a}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:11.5px;background:#f1f5fb;border:1px solid #e0e8f3;border-radius:7px;padding:4px 9px;color:#334155;font-weight:600}
+.chip.on{background:var(--a);border-color:var(--a);color:#fff}
+
+.bar{height:7px;border-radius:99px;background:#e6ecf5;overflow:hidden;margin-top:7px}
+.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--a),#38bdf8)}
+.bar.old i{background:#cbd5e1}
+
+.tree{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+.tree .lv{background:#fff;border:1px solid var(--line);border-top:3px solid var(--a);border-radius:8px;padding:8px 8px 9px}
+.tree .lv b{display:block;font-size:11px;color:var(--a);letter-spacing:.04em}
+.tree .lv .nm{font-size:12.5px;font-weight:800;margin:3px 0 4px}
+.tree .lv p{font-size:10.5px;color:#64748b;line-height:1.5;margin:0}
+
+.mock{border:1px solid #d7dee9;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 3px 12px rgba(15,23,42,.07)}
+.mock-bar{display:flex;align-items:center;gap:5px;padding:6px 9px;background:#eef2f7;border-bottom:1px solid #dde5ee}
+.mock-bar .dot{width:9px;height:9px;border-radius:50%;background:#cbd5e1}
+.mock-bar .dot.r{background:#fca5a5}.mock-bar .dot.y{background:#fcd34d}.mock-bar .dot.g{background:#86efac}
+.mock-bar .url{flex:1;margin-left:8px;background:#fff;border:1px solid #e2e8f0;border-radius:6px;
+  font-size:10.5px;color:#7c8aa0;padding:2px 8px;font-family:Consolas,monospace}
+.mock-body{padding:10px 12px;font-size:12px}
+.mrow{display:grid;align-items:center;gap:8px;padding:7px 9px;border:1px solid #e8edf5;border-radius:8px;
+  font-size:11.5px;margin-bottom:5px;background:#fff}
+.mrow.hd{background:#f4f7fc;font-weight:700;color:#475569;border-color:#e2e8f0}
+.mrow.sel{background:#f2f7ff;border-color:var(--a)}
+.mrow span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow .r{text-align:right;font-family:Consolas,monospace}
+.mrow .dash{color:#a8b6c9}
+.mrow .act{text-align:right;font-size:11px}
+.mrow .act b{color:#fff;background:var(--a);border-radius:6px;padding:2px 7px;font-weight:700}
+.mrow .act i{font-style:normal;color:#7c8aa0;border:1px solid #dfe6f0;border-radius:6px;padding:2px 6px;margin-left:4px;background:#fff}
+
+.donut{width:96px;height:96px;border-radius:50%;position:relative;margin:0 auto;
+  box-shadow:inset 0 0 0 1px rgba(15,23,42,.05)}
+.donut::after{content:'';position:absolute;inset:26px;background:#fff;border-radius:50%;
+  box-shadow:0 1px 3px rgba(15,23,42,.08)}
+.donut .ctr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;color:#334155;z-index:2}
+.legend{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px;font-size:10.5px;color:#64748b}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
+
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:12px}
+.kv dt{color:#7c8aa0;font-weight:600;white-space:nowrap}
+.kv dd{margin:0;color:#26344a}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.hr{height:1px;background:var(--line);margin:12px 0}
+
+/* ============ 封面 ============ */
+.s-cover{background:linear-gradient(135deg,#0a1832 0%,#132a52 45%,#0b1f3d 100%);color:#fff;padding:0}
+.s-cover .grain{position:absolute;inset:0;opacity:.5;
+  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:52px 52px}
+.s-cover .glow{position:absolute;width:620px;height:620px;right:-160px;top:-200px;border-radius:50%;
+  background:radial-gradient(circle,rgba(56,189,248,.30),transparent 65%)}
+.s-cover .glow2{position:absolute;width:520px;height:520px;left:-180px;bottom:-240px;border-radius:50%;
+  background:radial-gradient(circle,rgba(99,102,241,.28),transparent 65%)}
+.s-cover .inner{position:relative;z-index:2;padding:76px 72px;height:100%;display:flex;flex-direction:column}
+.cover-tag{display:inline-block;font-size:12px;letter-spacing:.2em;color:#93c5fd;border:1px solid rgba(147,197,253,.4);
+  border-radius:999px;padding:5px 14px;align-self:flex-start;background:rgba(30,64,175,.25)}
+.s-cover h1{font-size:52px;line-height:1.16;margin:22px 0 0;letter-spacing:-1px;
+  background:linear-gradient(90deg,#fff,#bcd7ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cover-sub{font-size:14.5px;color:#a9c2e6;line-height:1.9;margin:16px 0 0;max-width:1000px}
+.cover-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:auto;padding-top:22px;
+  border-top:1px solid rgba(255,255,255,.14)}
+.cover-meta div{font-size:13px;color:#e6efff;font-weight:600}
+.cover-meta div span{display:block;font-size:10.5px;color:#7d9ac4;letter-spacing:.1em;margin-bottom:4px;font-weight:600}
+.cover-hint{margin-top:20px;font-size:11.5px;color:#8fb0da}
+.cover-stats{display:flex;gap:26px;margin-top:22px}
+.cover-stats .cs b{font-size:26px;color:#fff;letter-spacing:-.5px}
+.cover-stats .cs b em{font-style:normal;font-size:13px;color:#93c5fd;margin-left:2px}
+.cover-stats .cs span{display:block;font-size:11px;color:#87a4cc;margin-top:2px}
+
+/* ============ HUD / 导航 ============ */
+#progress{position:fixed;left:0;top:0;height:3px;width:100%;background:rgba(255,255,255,.08);z-index:60}
+#progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#38bdf8,#818cf8,#f472b6);transition:width .28s ease}
+#hud{position:fixed;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:16px;align-items:center;z-index:60;pointer-events:none}
+#hud .grp{pointer-events:auto;display:flex;align-items:center;gap:10px;background:rgba(10,18,32,.72);
+  border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:6px 14px;backdrop-filter:blur(8px)}
+#hud button{cursor:pointer;background:rgba(255,255,255,.1);color:#dbeafe;border:1px solid rgba(255,255,255,.16);
+  border-radius:8px;width:28px;height:26px;font-size:13px;line-height:1;transition:.15s}
+#hud button:hover{background:rgba(255,255,255,.22)}
+#hud .cnt{color:#93c5fd;font-size:12px;font-weight:700;font-family:Consolas,monospace;letter-spacing:.06em}
+#hud .sec{color:#c7d6ea;font-size:11.5px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#dots{position:fixed;left:0;right:0;bottom:44px;display:flex;justify-content:center;gap:5px;z-index:59;flex-wrap:wrap;max-width:760px;margin:0 auto}
+#dots span{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.22);cursor:pointer;transition:.15s}
+#dots span:hover{background:rgba(255,255,255,.55);transform:scale(1.25)}
+#dots span.on{background:#60a5fa;width:18px;border-radius:99px}
+
+#notes{position:fixed;left:0;right:0;bottom:0;height:150px;background:rgba(7,12,22,.94);color:#dbe7f7;
+  border-top:1px solid rgba(96,165,250,.35);padding:12px 26px 14px;font-size:12.5px;line-height:1.72;z-index:58;
+  display:none;overflow:auto;backdrop-filter:blur(6px)}
+#notes.show{display:block}
+#notes .nh{font-size:10.5px;letter-spacing:.16em;color:#60a5fa;font-weight:700;margin-bottom:6px}
+#notes b{color:#fff}
+
+#overview{position:fixed;inset:0;background:rgba(5,9,17,.94);z-index:70;display:none;padding:34px 40px 60px;overflow:auto;backdrop-filter:blur(4px)}
+#overview.show{display:block}
+#overview .oh{color:#e2e8f0;font-size:15px;font-weight:700;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center}
+#overview .oh small{color:#7c8aa0;font-weight:400;font-size:11.5px}
+#ovgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+#ovgrid .ov{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:9px;
+  padding:11px 11px 12px;cursor:pointer;transition:.16s;min-height:82px;position:relative;overflow:hidden}
+#ovgrid .ov:hover{background:rgba(96,165,250,.16);border-color:rgba(96,165,250,.5);transform:translateY(-2px)}
+#ovgrid .ov.on{border-color:#60a5fa;background:rgba(96,165,250,.2)}
+#ovgrid .ov .no{font-size:10px;color:#7c8aa0;font-family:Consolas,monospace}
+#ovgrid .ov .tt{font-size:11.5px;color:#e8eefb;line-height:1.45;margin-top:5px;font-weight:600}
+#ovgrid .ov .st{position:absolute;left:0;top:0;width:3px;height:100%;background:#60a5fa}
+
+#help{position:fixed;inset:0;background:rgba(5,9,17,.92);z-index:80;display:none;align-items:center;justify-content:center}
+#help.show{display:flex}
+#help .box{background:#0e1729;border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:26px 32px;color:#dbe7f7;min-width:520px}
+#help h3{margin:0 0 16px;font-size:16px;color:#fff}
+#help table{border-collapse:collapse;font-size:12.5px}
+#help td{padding:5px 16px 5px 0;color:#a9bcd6}
+#help td:first-child{color:#93c5fd;font-family:Consolas,monospace;white-space:nowrap}
+
+@media print{
+  html,body{overflow:visible;height:auto;background:#fff}
+  #hud,#dots,#progress,#overview,#help,#notes{display:none!important}
+  #stagewrap{position:static;display:block;background:#fff}
+  #stage{width:100%;height:auto;transform:none!important;box-shadow:none;border-radius:0}
+  .slide{position:relative;inset:auto;opacity:1!important;pointer-events:auto;transform:none!important;
+    page-break-after:always;height:720px;border-bottom:1px solid #ddd}
+}
+</style>
+</head>
+<body>
+
+<div id="progress"><i></i></div>
+
+<div id="stagewrap"><div id="stage">
+
+<!-- ================= 01 封面 ================= -->
+<section class="slide s-cover sec-cover" data-sec="封面" data-title="封面 · 系统总览">
+  <div class="grain"></div><div class="glow"></div><div class="glow2"></div>
+  <div class="inner">
+    <div class="cover-tag">产品需求文档 PRD V3.1 · 项目演示</div>
+    <h1>破产管理人<br>债权申报与审查系统</h1>
+    <p class="cover-sub">申报接收（线上 / 线下）→ AI 解析识别 → 债权登记 → AI 辅助审查 → 人工复核定稿 → 出具审查结果通知书 → 数据统计与归档<br>
+      <span style="color:#7d9ac4">↳ 债权人补充材料可在任一环节追加，自动触发重新审查</span></p>
+    <div class="cover-stats">
+      <div class="cs"><b>16<em>个</em></b><span>功能模块 FR</span></div>
+      <div class="cs"><b>20<em>条</em></b><span>通用审查规则</span></div>
+      <div class="cs"><b>11<em>类</em></b><span>类型化审查标准</span></div>
+      <div class="cs"><b>7<em>级</em></b><span>逐级审查决策树</span></div>
+      <div class="cs"><b>100<em>%</em></b><span>数据本地存储</span></div>
+    </div>
+    <div class="cover-meta">
+      <div><span>文档版本</span>PRD V3.1</div>
+      <div><span>系统版本</span>V3.1（AI 审查标准升级 + 台账交互重构版）</div>
+      <div><span>更新日期</span>2026-09</div>
+      <div><span>目标读者</span>产品 / 开发 / 测试 / 实施 / 管理人业务方</div>
+    </div>
+    <div class="cover-hint"><kbd>←</kbd><kbd>→</kbd> 翻页 &nbsp;·&nbsp; <kbd>O</kbd> 总览 &nbsp;·&nbsp; <kbd>F</kbd> 全屏 &nbsp;·&nbsp; <kbd>N</kbd> 讲稿 &nbsp;·&nbsp; <kbd>?</kbd> 快捷键</div>
+  </div>
+  <div class="note"><b>开场（30 秒）：</b>这是破产管理人用的债权申报与审查系统，解决的是"一堆扫描件 → 一本规范台账 → 一份份审查结论"这条主线。今天讲的是 V3.1 版本，它做了一件最关键的事：把 AI 审查从"通用标准"升级为"按债权类型差异化审查"，并且让每个结论都能追溯依据。</div>
+</section>
+
+<!-- ================= 02 目录 ================= -->
+<section class="slide sec-biz" data-sec="导览" data-title="目录 · 8 个部分">
+  <div class="s-head"><div class="eyebrow">AGENDA</div><h2>今天讲什么</h2>
+    <div class="lead">从业务痛点出发，讲清楚 V3.1 交付了什么、凭什么可信、怎么用、后面往哪走。</div></div>
+  <div class="body">
+    <div class="grid g4" style="grid-auto-rows:1fr">
+      <div class="card tint"><div class="num-lg">01</div><h4>业务背景与痛点</h4><p>传统 Excel 台账 + 人工翻材料方式的 6 个痛点</p></div>
+      <div class="card tint"><div class="num-lg">02</div><h4>产品定位与目标</h4><p>本地化全流程工具；6 项可衡量目标；本期不做什么</p></div>
+      <div class="card tint"><div class="num-lg">03</div><h4>用户角色与场景</h4><p>4 类角色、6 个核心使用场景</p></div>
+      <div class="card tint"><div class="num-lg">04</div><h4>V3.1 变更摘要</h4><p>一页纸讲完本版 9 项变更</p></div>
+      <div class="card tint"><div class="num-lg">05</div><h4>功能全景 FR-01–16</h4><p>16 个模块 + 关键模块深度展开</p></div>
+      <div class="card tint" style="border-color:#c4b5fd"><div class="num-lg" style="color:#7c3aed">06</div><h4>AI 审查方法论升级</h4><p>提示词 v2、类型自动判定、结论可追溯</p></div>
+      <div class="card tint"><div class="num-lg">07</div><h4>数据 · 非功能 · 验收</h4><p>数据模型、质量规则、验收标准与验证证据</p></div>
+      <div class="card tint"><div class="num-lg">08</div><h4>Roadmap 与现场演示</h4><p>后续版本、依赖风险、现场演示脚本</p></div>
+    </div>
+    <div class="callout" style="margin-top:14px"><b>建议时长：</b>25–35 分钟。重点在第 04、06 部分（V3.1 到底改了什么、AI 审查凭什么可信）；第 05 部分可按听众兴趣跳讲。</div>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 项目演示</span><span>导览</span></div>
+</section>
+
+<!-- ================= 03 背景痛点 ================= -->
+<section class="slide sec-biz" data-sec="01 业务背景" data-title="业务背景 · 6 个痛点">
+  <div class="s-head"><div class="eyebrow">01 · 业务背景</div><h2>为什么需要这套系统</h2>
+    <div class="lead">破产案件中，管理人需在法定期间内完成债权申报接收、登记造册、实质审查与结果通知。传统做法是 <b>Excel 台账 + 人工翻阅纸质材料</b>。</div></div>
+  <div class="body">
+    <table class="tbl">
+      <tr><th style="width:34%">痛点</th><th>带来的影响</th></tr>
+      <tr><td class="k">申报材料多为扫描件，人工录入耗时长</td><td>单案几十至数百笔债权，录入成本高、易错</td></tr>
+      <tr><td class="k">审查标准不统一</td><td>不同经办人结论口径不一致，法律依据缺失</td></tr>
+      <tr><td class="k">数据分散、缺乏统计</td><td>无法快速掌握申报总额、优先权分布、审查进度</td></tr>
+      <tr><td class="k">通知文书制作繁琐</td><td>每笔债权单独出具《审查结果通知书》，格式易出错</td></tr>
+      <tr><td class="k">材料交接依赖线下</td><td>异地债权人申报不便，材料收集周期长</td></tr>
+      <tr><td class="k">债权人后续补交材料</td><td>无法在既有债权上追加材料，容易产生重复债权记录</td></tr>
+    </table>
+    <div class="grid g3" style="margin-top:13px">
+      <div class="callout">核心矛盾一：<b>录入</b>——材料是纸和扫描件，台账要的是结构化字段。</div>
+      <div class="callout">核心矛盾二：<b>口径</b>——同类债权（借贷 / 工程款 / 购房）审查要点完全不同，靠人记不住。</div>
+      <div class="callout">核心矛盾三：<b>追溯</b>——结论出具后要能说清"这笔为什么这么认定、依据哪条"。</div>
+    </div>
+  </div>
+  <div class="note">强调第二、第三条：V3.1 的两个主攻方向就是"口径"（类型化标准）和"追溯"（prompt_version + standard_refs）。如果听众是管理人业务方，多讲录入成本和异地申报。</div>
+  <div class="s-foot"><span>PRD V3.1 · 一、产品概述</span><span>03</span></div>
+</section>
+
+<!-- ================= 04 产品定位 ================= -->
+<section class="slide sec-prod" data-sec="02 产品定位" data-title="产品定位 · 全流程闭环">
+  <div class="s-head"><div class="eyebrow">02 · 产品定位</div><h2>面向破产管理人的全流程工具</h2>
+    <div class="lead">一条主线串起七个环节，补材料可插入任一环节并自动触发重审。</div></div>
+  <div class="body">
+    <div class="flow" style="gap:5px">
+      <div class="n">申报接收<small>线上 / 线下</small></div><span class="ar">→</span>
+      <div class="n">AI 解析识别<small>OCR + 字段提取</small></div><span class="ar">→</span>
+      <div class="n">债权登记<small>台账建卡</small></div><span class="ar">→</span>
+      <div class="n">AI 辅助审查<small>决策树 + 类型标准</small></div><span class="ar">→</span>
+      <div class="n">人工复核定稿<small>金额 + 性质 + 结论</small></div><span class="ar">→</span>
+      <div class="n">出具通知书<small>公文格式 Word</small></div><span class="ar">→</span>
+      <div class="n">数据统计归档<small>看板 + 明细</small></div>
+    </div>
+    <div class="callout" style="margin:12px 0 0;border-color:#7c3aed;background:#f6f3ff">
+      ↑ &nbsp;<b>债权人补充材料</b>可在任一环节追加：新材料并入同一预览页、只解析新增文件、自动重置审查状态触发重审。
+    </div>
+    <div class="grid g3" style="margin-top:14px">
+      <div class="card"><h4>🏠 本地化部署</h4><p>数据默认全部保存在本机（SQLite + 文件目录），不依赖外部服务即可跑通核心流程；敏感材料不出内网。</p></div>
+      <div class="card"><h4>🔌 可选外部能力</h4><p>云解析（MinerU）提升扫描件表格/版面还原；云端申报接收服务支持异地债权人在线申报。</p></div>
+      <div class="card"><h4>⚖️ AI 只做辅助</h4><p>AI 意见仅为辅助初审，须经管理人复核后生效；对外文书不输出内部审查过程与标准编号。</p></div>
+    </div>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 1.2 产品定位</span><span>04</span></div>
+</section>
+
+<!-- ================= 05 目标与非目标 ================= -->
+<section class="slide sec-prod" data-sec="02 产品目标" data-title="产品目标与衡量指标">
+  <div class="s-head"><div class="eyebrow">02 · 产品目标</div><h2>六项目标 · 每项都有衡量方式</h2></div>
+  <div class="body">
+    <div class="grid g32">
+      <div>
+        <table class="tbl">
+          <tr><th style="width:26%">目标</th><th>衡量指标</th></tr>
+          <tr><td class="k">降低录入成本</td><td>扫描件自动 OCR + 字段自动提取（23 项字段），人工仅需核对修正</td></tr>
+          <tr><td class="k">统一审查口径</td><td>内置 7 级决策树 + <b>20 条通用规则</b> + <b>11 类类型化标准</b>，输出含法律依据与标准引用</td></tr>
+          <tr><td class="k">审查可追溯</td><td>每笔审查保存提示词版本、注入标准、引用条目编号</td></tr>
+          <tr><td class="k">提升数据掌控力</td><td>看板按"确认 / 暂缓 / 否定"三组呈现；四张金额与性质构成图</td></tr>
+          <tr><td class="k">规范文书输出</td><td>一键生成公文格式《破产债权审查结果通知书》</td></tr>
+          <tr><td class="k">数据安全可控</td><td>全部数据本地存储，敏感材料不出内网（云解析可选）</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="card" style="border-color:#fcd34d;background:#fffbf0;height:100%">
+          <h4 style="color:#b45309">🚫 本期不做（非目标）</h4>
+          <ul style="font-size:12px;color:#7c5a1e;line-height:1.75">
+            <li>多租户 SaaS 化与账号体系（当前内网单机 / 小团队）</li>
+            <li>债权确认表自动提交法院系统对接</li>
+            <li>破产财产分配计算与方案生成</li>
+            <li>移动端 App</li>
+            <li>AI 结论与人工结论冲突自动拦截 <span class="pill mut">列入 Roadmap</span></li>
+          </ul>
+          <div class="hr"></div>
+          <p style="font-size:11.5px;color:#8a6a2f">※ 明确"不做什么"是为了守住交付边界：本期的价值在<b>录入提效 + 口径统一 + 结论可追溯</b>，不在替代管理人的专业判断。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="note">如果被问"为什么不做权限"，答：当前定位是内网单机/小团队工具，无登录鉴权是已知取舍，V3.3 规划角色权限与操作日志。</div>
+  <div class="s-foot"><span>PRD V3.1 · 1.3 / 1.4</span><span>05</span></div>
+</section>
+
+<!-- ================= 06 用户角色 ================= -->
+<section class="slide sec-prod" data-sec="03 用户与场景" data-title="用户角色 · 4 类">
+  <div class="s-head"><div class="eyebrow">03 · 用户与场景</div><h2>四类角色，各看各的</h2>
+    <div class="lead">同一个项目、同一份数据，四类角色看到的是不同界面与不同粒度。</div></div>
+  <div class="body">
+    <div class="grid g4">
+      <div class="card"><span class="pill p1">内部</span><h4 style="margin-top:7px">破产管理人<br><span style="font-size:11.5px;color:#8b9ab0">主办律师 / 会计师</span></h4>
+        <p>债权审查、复核定稿、文书签发、批量重审</p><div class="hr"></div><p style="font-size:11.5px">使用：<b>全部模块</b></p></div>
+      <div class="card"><span class="pill p1">内部</span><h4 style="margin-top:7px">管理人助理<br><span style="font-size:11.5px;color:#8b9ab0">登记员</span></h4>
+        <p>材料接收、录入核对、发起审查</p><div class="hr"></div><p style="font-size:11.5px">使用：<b>台账 / 上传 / 解析</b></p></div>
+      <div class="card"><span class="pill p2">外部</span><h4 style="margin-top:7px">债权人<br><span style="font-size:11.5px;color:#8b9ab0">无需登录</span></h4>
+        <p>在线申报债权、按证据目录上传材料、后续补充材料</p><div class="hr"></div><p style="font-size:11.5px">使用：<b>云端申报页</b></p></div>
+      <div class="card"><span class="pill mut">查看方</span><h4 style="margin-top:7px">法院 / 债权人会议</h4>
+        <p>接收台账与审查结果</p><div class="hr"></div><p style="font-size:11.5px">使用：<b>导出的 Excel / Word</b></p></div>
+    </div>
+    <div class="grid g2" style="margin-top:13px">
+      <div class="callout"><b>对内：</b>台账页是主战场——数据进（新增 / 导入 / 在线申报 / 补充材料）、数据出（AI 审查 / 复核 / 导出）都在一页完成。</div>
+      <div class="callout" style="border-color:#0e7490;background:#f0fbfd"><b>对外：</b>债权人不接触系统内部，只通过一个网页提交信息与证据目录，管理人一键拉取入台账。</div>
+    </div>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 2.1 用户角色</span><span>06</span></div>
+</section>
+
+<!-- ================= 07 场景 1-3 ================= -->
+<section class="slide sec-prod" data-sec="03 核心场景" data-title="核心场景 ① ② ③">
+  <div class="s-head"><div class="eyebrow">03 · 核心场景（1 / 2）</div><h2>从收到材料到出结论</h2></div>
+  <div class="body">
+    <div class="grid g3">
+      <div class="card">
+        <span class="pill">场景 1</span><h4 style="margin-top:7px">线下材料批量登记</h4>
+        <div class="steps" style="margin-top:8px">
+          <div class="st"><div class="tx">收到债权人邮寄的纸质材料 → 扫描为 PDF</div></div>
+          <div class="st"><div class="tx">在台账页「🆕 新增债权申报」拖拽/选择上传 → 自动 OCR + 字段提取 → 生成债权编号 <b>PC-001</b></div></div>
+          <div class="st"><div class="tx">点该行「✎ 初审 / 编辑」核对修正（申报总额随分项自动汇总）→ <b>保存即自动登记为「已登记」</b></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="pill">场景 2</span><h4 style="margin-top:7px">异地债权人线上申报</h4>
+        <div class="steps" style="margin-top:8px">
+          <div class="st"><div class="tx">管理人在「🌐 在线申报」复制本项目云端申报地址发给债权人</div></div>
+          <div class="st"><div class="tx">债权人在<b>「6 上传证据材料」证据目录表</b>中逐项填写证据名称、上传对应材料（生成云申报号 C-xxx）</div></div>
+          <div class="st"><div class="tx">管理人点「拉取云端申报」→「更新在线申报」→ 一键导入台账（<b>同名查重提示</b>）</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="pill">场景 3</span><h4 style="margin-top:7px">AI 审查 + 人工复核</h4>
+        <div class="steps" style="margin-top:8px">
+          <div class="st"><div class="tx">台账行内点「🤖 AI 审查」（或点 AI 审查徽标）→ 后台按 7 级决策树 + 命中的类型化标准出具意见</div></div>
+          <div class="st"><div class="tx">审查工作台查看意见，面板顶部显示 <b>「提示词 v2-2026-09 · 标准：工程款 · 引用：工程款-2、工程款-3」</b></div></div>
+          <div class="st"><div class="tx">点「✍️ 人工复核」核定审核金额、确认债权性质、填写结论 → 状态变「已复核」，台账显示<b>核减金额与比例</b></div></div>
+          <div class="st"><div class="tx">点「预览/编辑意见书」调整措辞 → 保存编辑稿 → 导出 Word</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 2.2 核心使用场景</span><span>07</span></div>
+</section>
+
+<!-- ================= 08 场景 4-6 ================= -->
+<section class="slide sec-prod" data-sec="03 核心场景" data-title="核心场景 ④ ⑤ ⑥">
+  <div class="s-head"><div class="eyebrow">03 · 核心场景（2 / 2）</div><h2>补材料、看进度、批量处理</h2></div>
+  <div class="body">
+    <div class="grid g3">
+      <div class="card" style="border-color:#c4b5fd">
+        <span class="pill vk">场景 4 · V3.1 新增</span><h4 style="margin-top:7px">债权人补交材料</h4>
+        <div class="steps" style="margin-top:8px">
+          <div class="st"><div class="tx">债权人在该行「⋯ → 📎 补充材料」上传新材料</div></div>
+          <div class="st"><div class="tx">新材料与原件在<b>同一材料预览页</b>显示（标注「📎 补充」）</div></div>
+          <div class="st"><div class="tx">后台<b>只解析新材料</b>并同步提取信息（只补空、不覆盖）</div></div>
+          <div class="st"><div class="tx">系统自动清空 AI 审查结论、人工复核标记未完成、状态退回「已登记」→ 重新审查</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="pill">场景 5</span><h4 style="margin-top:7px">案件进度与数据统计</h4>
+        <div class="steps" style="margin-top:8px">
+          <div class="st"><div class="tx">进入「数据后台」→ 查看审核汇总<b>三组</b>（已审查确认 / 暂缓确认 / 已否定）的笔数与金额（含本金/利息/其他）</div></div>
+          <div class="st"><div class="tx">查看<b>四张构成图</b>：申报金额构成、申报性质构成、已确认金额构成、已确认性质构成</div></div>
+          <div class="st"><div class="tx">按债权性质筛选（如仅看工程款优先权）；进入「债权明细查询」做类 Excel 筛选、排序与合计</div></div>
+        </div>
+      </div>
+      <div class="card" style="border-color:#c4b5fd">
+        <span class="pill vk">场景 6 · V3.1 新增</span><h4 style="margin-top:7px">批量处理与阶段性重审</h4>
+        <div class="steps" style="margin-top:8px">
+          <div class="st"><div class="tx">勾选多笔 → 批量条「🤖 批量 AI 审查」并发发起并统一轮询，完成后汇总成功/失败笔数</div></div>
+          <div class="st"><div class="tx">勾选多笔 → 「📊 导出选中台账」「📄 导出选中意见书」只导出选中债权（<b>按传入顺序</b>）</div></div>
+          <div class="st"><div class="tx">提示词升级后可对同一批债权重跑并逐笔比对，评估口径变化</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 2.2 核心使用场景</span><span>08</span></div>
+</section>
+
+<!-- ================= 09 V3.1 变更摘要 ================= -->
+<section class="slide sec-fr" data-sec="04 V3.1 变更" data-title="V3.1 变更摘要 · 一页纸">
+  <div class="s-head"><div class="eyebrow">04 · 本次变更</div><h2>V3.1 一页纸：改了 9 件事</h2>
+    <div class="lead">每一项变更都对应一个具体业务问题——先看"解决什么"，再看"改在哪"。</div></div>
+  <div class="body">
+    <table class="tbl tight">
+      <tr><th class="c" style="width:4%">#</th><th style="width:34%">变更</th><th>解决的业务问题</th><th style="width:12%" class="c">影响模块</th></tr>
+      <tr><td class="c k">1</td><td class="k">AI 审查提示词升级到 v2-2026-09：通用规则 7→20 条、类型化标准 6→11 类、类型三级自动判定</td>
+        <td>原类型化标准几乎不生效（真实数据 32 笔中 29 笔因「债权类型」为空而退回通用标准），借贷 LPR 4 倍、工程款 18 个月等差异化审查缺失</td><td class="c">FR-04</td></tr>
+      <tr><td class="c k">2</td><td class="k">审查结论可追溯：记录提示词版本、注入标准、实际引用条目编号，界面可见</td>
+        <td>无法判断"标准到底有没有被用上"，历史结论口径不可复现</td><td class="c">FR-04</td></tr>
+      <tr><td class="c k">3</td><td class="k">台账页交互重构：数据进出集中为动作区，行内只显示"当前该做的一步"，其余收进「⋯」</td>
+        <td>一排 6 个按钮主次不分、上传区与补充材料入口混淆、窄屏要横向滚到底才点到按钮</td><td class="c">FR-03 / FR-16</td></tr>
+      <tr><td class="c k">4</td><td class="k">登记流程改造：取消独立「登记」按钮，初审/编辑保存即自动登记；新增取消登记</td>
+        <td>登记与编辑割裂（要编辑完再点登记），误登记后无法回退</td><td class="c">FR-13</td></tr>
+      <tr><td class="c k">5</td><td class="k">新增补充材料：追加材料、同页预览、只解析新材料、同步提取、AI 审查自动重置</td>
+        <td>债权人补交材料只能新建一笔债权或整笔重传，台账出现重复记录</td><td class="c">FR-14</td></tr>
+      <tr><td class="c k">6</td><td class="k">数据后台改版：审核汇总按三组结论呈现，图表改为四张构成图</td>
+        <td>原看板只有"审核金额&gt;0"一个口径，无法区分确认与否定；金额区间分布与债权种类统计价值低</td><td class="c">FR-08</td></tr>
+      <tr><td class="c k">7</td><td class="k">批量操作：批量登记、批量 AI 审查（并发+统一轮询）、导出选中、批量删除</td>
+        <td>几十上百笔债权只能逐笔点，重跑审查耗时</td><td class="c">FR-15</td></tr>
+      <tr><td class="c k">8</td><td class="k">云端申报页第 6 节改为证据目录表（默认 8 行 2 列可加行）</td>
+        <td>原自由上传区无法体现"证据目录"，法代证明书/授权委托书单独槽位与目录重复</td><td class="c">FR-07</td></tr>
+      <tr><td class="c k">9</td><td class="k">缺陷修复：字段提取在中文字段上 float() 抛错导致整笔解析失败；删除债权残留孤儿行</td>
+        <td>已登记债权"重新解析/补充材料"后提取信息根本没同步；数据库存在脏行</td><td class="c">质量</td></tr>
+    </table>
+  </div>
+  <div class="note">这一页是全场重点。讲法：1–2 项是"审查能力"升级，3–4–5 是"日常操作"改造，6–7 是"管理视角"补齐，8 是对外申报体验，9 是上一版遗留缺陷的收口。可以指着第 1 行说：32 笔里 29 笔退回通用标准，等于类型化标准形同虚设——这是本版第一优先级。</div>
+  <div class="s-foot"><span>PRD V3.1 · 〇、变更摘要</span><span>09</span></div>
+</section>
+
+<!-- ================= 10 功能全景 ================= -->
+<section class="slide sec-fr" data-sec="05 功能全景" data-title="功能全景 · FR-01–FR-16">
+  <div class="s-head"><div class="eyebrow">05 · 需求范围</div><h2>16 个功能模块全景</h2>
+    <div class="lead">P0 必须 / P1 重要 / P2 增强；紫色为 V3.1 新增或升级模块。</div></div>
+  <div class="body">
+    <div class="grid g4" style="gap:9px">
+      <div class="card"><span class="pill p0">P0</span><h4>FR-01 项目管理</h4><p>多案件项目隔离、项目字段与卡片、切换器</p></div>
+      <div class="card"><span class="pill p0">P0</span><h4>FR-02 材料上传与解析</h4><p>批量上传、异步解析、23 字段自动提取</p></div>
+      <div class="card" style="border-color:#c4b5fd"><span class="pill vk">V3.1 扩展</span><h4>FR-03 债权台账</h4><p>25 项字段、列设置、核减列、筛选与状态流转</p></div>
+      <div class="card" style="border-color:#c4b5fd"><span class="pill vk">V3.1 升级</span><h4>FR-04 AI 债权审查</h4><p>决策树 + 20 规则 + 11 类型标准 + 可追溯</p></div>
+      <div class="card"><span class="pill p0">P0</span><h4>FR-05 人工复核</h4><p>审核金额、结论、确认性质、定稿</p></div>
+      <div class="card"><span class="pill p1">P1</span><h4>FR-06 意见书预览与编辑</h4><p>公文版式在线预览、编辑稿保存</p></div>
+      <div class="card" style="border-color:#c4b5fd"><span class="pill vk">V3.1 改造</span><h4>FR-07 在线申报</h4><p>证据目录表、命名规则、拉取导入幂等</p></div>
+      <div class="card" style="border-color:#c4b5fd"><span class="pill vk">V3.1 改版</span><h4>FR-08 数据后台</h4><p>三组结论汇总 + 四张构成图</p></div>
+      <div class="card"><span class="pill p1">P1</span><h4>FR-09 债权明细查询</h4><p>类 Excel 筛选、排序、合计行</p></div>
+      <div class="card"><span class="pill p0">P0</span><h4>FR-10 导入导出</h4><p>台账 Excel、通知书 Word、批量 zip、ids 导出</p></div>
+      <div class="card"><span class="pill p1">P1</span><h4>FR-11 AI 模型配置</h4><p>多套 OpenAI 兼容配置、测试连接、降级</p></div>
+      <div class="card"><span class="pill p1">P1</span><h4>FR-12 部署与协同</h4><p>局域网协同、一键脚本、云端部署流程</p></div>
+      <div class="card" style="border-color:#c4b5fd"><span class="pill vk">V3.1 新增</span><h4>FR-13 登记与状态流转</h4><p>保存即登记、取消登记、总额自动汇总</p></div>
+      <div class="card" style="border-color:#c4b5fd"><span class="pill vk">V3.1 新增</span><h4>FR-14 补充材料</h4><p>追加材料、只解析新增、审查重置</p></div>
+      <div class="card" style="border-color:#c4b5fd"><span class="pill vk">V3.1 新增</span><h4>FR-15 批量操作</h4><p>批量登记 / 审查 / 导出 / 删除</p></div>
+      <div class="card" style="border-color:#c4b5fd"><span class="pill vk">V3.1 新增</span><h4>FR-16 台账界面约定</h4><p>动作区、行内下一步、⋯ 菜单、双 Tab</p></div>
+    </div>
+  </div>
+  <div class="note">如果时间紧，只讲紫色 7 个模块（V3.1 增量：FR-03 扩展、FR-04 升级、FR-08 改版、FR-13/14/15/16 新增），其余一句带过"V3.0 已验证的能力"。</div>
+  <div class="s-foot"><span>PRD V3.1 · 三、需求范围</span><span>10</span></div>
+</section>
+
+<!-- ================= 11 FR-02 解析 ================= -->
+<section class="slide sec-fr" data-sec="05 功能深度" data-title="FR-02 材料上传与解析">
+  <div class="s-head"><div class="eyebrow">05 · FR-02</div><h2>材料上传与解析：把扫描件变成结构化字段</h2>
+    <div class="lead">支持 PDF / Word / 图片（png·jpg·bmp·tif·webp）/ txt 批量上传，上传即建债权并生成编号，解析在后台异步执行。</div></div>
+  <div class="body">
+    <div class="grid g23">
+      <div>
+        <div class="card tint">
+          <h4>解析引擎策略</h4>
+          <table class="tbl tight" style="margin-top:6px">
+            <tr><th>文件类型</th><th>首选</th><th>回退</th></tr>
+            <tr><td>文本型 / 扫描件 PDF、图片</td><td>☁️ MinerU 云端解析<br><span class="sm">表格、公式、版面还原</span></td><td>💻 本地 pdfplumber / PyMuPDF / RapidOCR</td></tr>
+            <tr><td>Word / txt</td><td>本地解析</td><td>—</td></tr>
+          </table>
+          <p style="margin-top:8px;font-size:11.5px">进度面板逐份显示所用引擎（☁️ / 💻）；上传按钮在解析期间显示「正在上传 N 个文件…」并禁用，避免并发错乱。</p>
+        </div>
+        <div class="card" style="margin-top:11px">
+          <h4>字段自动提取 · 23 项</h4>
+          <div class="chips" style="margin-top:6px">
+            <span class="chip">债权人名称</span><span class="chip">统一社会信用代码/身份证</span><span class="chip">法定代表人</span>
+            <span class="chip">联系方式</span><span class="chip">地址</span><span class="chip">代理人信息</span><span class="chip">开户行</span>
+            <span class="chip">账号</span><span class="chip">申报本金/利息/其他/总额</span><span class="chip">债权种类</span><span class="chip">债权性质</span><span class="chip">…</span>
+          </div>
+          <p style="margin-top:8px"><b>防覆盖保护：</b>台账已有申报信息（云端导入 / 人工登记）时，解析仅补充空缺字段；金额未识别（0）不覆盖已有金额。LLM 优先，未配置模型时降级规则引擎。</p>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="border-color:#fcd34d;background:#fffbf0;height:100%">
+          <h4 style="color:#b45309">🐞 V3.1 缺陷修复：解析为什么"没反应"</h4>
+          <p style="margin-top:7px;color:#7c5a1e"><b>现象：</b>已登记债权做「重新解析 / 补充材料」后，提取信息没有落库；个别债权解析直接失败。</p>
+          <p style="margin-top:7px;color:#7c5a1e"><b>根因：</b>字段回写对<b>文本字段误用 <code>float()</code></b> 转换 → 遇到中文即抛 <code>ValueError: could not convert string to float</code> → 整笔解析中断。</p>
+          <p style="margin-top:7px;color:#7c5a1e"><b>修复：</b>按字段类型分别判空——数值比数值、文本比字符串。</p>
+          <div class="hr" style="background:#f3ddb0"></div>
+          <h4 style="color:#b45309">⏱ 解析卡死自愈</h4>
+          <p style="color:#7c5a1e"><b>parse_started_at</b> 记录解析起点：读取债权时若"解析中"超过 30 分钟未完成（或服务重启导致线程消失）→ 自动标记 <code>failed</code> 并写明原因；解析中再次触发返回 409，避免重复 OCR。</p>
+          <p style="margin-top:7px;color:#7c5a1e"><b>无材料债权</b>（Excel 导入台账行）解析状态置 <code>empty</code>，不显示"待解析"、不参与自愈。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 4.2 / 5.3</span><span>11</span></div>
+</section>
+
+<!-- ================= 12 FR-03 台账交互 ================= -->
+<section class="slide sec-fr" data-sec="05 功能深度" data-title="FR-03/16 台账交互重构">
+  <div class="s-head"><div class="eyebrow">05 · FR-03 / FR-16</div><h2>台账页重构：一排按钮 → 一个"下一步"</h2>
+    <div class="lead">原来的问题不是功能少，而是<b>不知道下一步该点哪个</b>。V3.1 用"动作区 + 行内主按钮 + ⋯ 菜单"三件套解决。</div></div>
+  <div class="body">
+    <div class="two" style="grid-template-columns:1.35fr 1fr">
+      <div>
+        <div class="mock">
+          <div class="mock-bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span class="url">台账页 · 有数据时收成一行操作条</span></div>
+          <div class="mock-body">
+            <div class="grid g4" style="gap:6px">
+              <div class="card" style="padding:7px 9px;text-align:center"><div style="font-size:16px">🆕</div><b style="font-size:11px">新增债权申报</b></div>
+              <div class="card" style="padding:7px 9px;text-align:center"><div style="font-size:16px">📥</div><b style="font-size:11px">导入台账 Excel</b></div>
+              <div class="card" style="padding:7px 9px;text-align:center;border-color:#7c3aed"><div style="font-size:16px">🌐</div><b style="font-size:11px">在线申报</b><div class="pill vk" style="margin-top:3px">待导入 2</div></div>
+              <div class="card" style="padding:7px 9px;text-align:center"><div style="font-size:16px">📊</div><b style="font-size:11px">导出</b></div>
+            </div>
+            <p style="font-size:10.5px;color:#7c8aa0;margin:8px 0 0">空项目时显示 4 张动作卡（含操作说明，第一张为拖拽上传目标）</p>
+            <div class="hr" style="margin:9px 0"></div>
+            <div class="mrow hd" style="gap:5px;grid-template-columns:44px minmax(64px,1fr) 76px 82px 48px 50px 56px 104px">
+              <span>编号</span><span>债权人名称</span><span>性质</span><span class="r">申报总额</span><span class="r">核减</span><span>状态</span><span>AI审查</span><span class="act">操作</span>
+            </div>
+            <div class="mrow" style="gap:5px;grid-template-columns:44px minmax(64px,1fr) 76px 82px 48px 50px 56px 104px">
+              <span>PC-001</span><span>××建筑有限公司</span><span>工程款优先权</span><span class="r">9,726,339.00</span><span class="r dash">—</span><span><i class="pill">已登记</i></span><span><i class="pill ok">已审查</i></span><span class="act"><b>✍️ 人工复核</b><i>⋯</i></span>
+            </div>
+            <div class="mrow" style="gap:5px;grid-template-columns:44px minmax(64px,1fr) 76px 82px 48px 50px 56px 104px">
+              <span>PC-002</span><span>××小额贷款公司</span><span>普通债权</span><span class="r">3,150,000.00</span><span class="r dash">—</span><span><i class="pill">已登记</i></span><span><i class="pill mut">未审查</i></span><span class="act"><b>🤖 AI 审查</b><i>⋯</i></span>
+            </div>
+            <div class="mrow" style="gap:5px;grid-template-columns:44px minmax(64px,1fr) 76px 82px 48px 50px 56px 104px">
+              <span>PC-003</span><span>（待补全）</span><span class="dash">—</span><span class="r">120,000.00</span><span class="r dash">—</span><span><i class="pill warn">待登记</i></span><span class="dash">—</span><span class="act"><b>✎ 初审 / 编辑</b><i>⋯</i></span>
+            </div>
+            <p style="font-size:10.5px;color:#7c8aa0;margin:6px 0 0">点整行 → 进入该债权「审查工作台」（按钮 / 复选框 / 链接不触发）</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card"><h4>📌 数据进出四件事（FR-16-1）</h4>
+          <p>🆕 新增债权申报 ｜ 📥 导入台账 Excel ｜ 🌐 在线申报 ｜ 📊 导出 ——各自独立、各带一句说明，不再混在材料上传区里。</p></div>
+        <div class="card" style="margin-top:9px"><h4>🎯 行内只显示"当前该做的一步"（FR-16-3）</h4>
+          <p>待登记 → 已登记未审查 → 已登记且 AI 完成 → 审查中 → 已复核，五种状态对应五个不同主按钮，其余操作全部收进「⋯」。</p></div>
+        <div class="card" style="margin-top:9px"><h4>🗂 双 Tab + 筛选标签（FR-16-8 / 16-7）</h4>
+          <p>台账 / 审查两个视图顶部共用 Tab 栏，URL 可回溯（<code>#/ledger?project=X&amp;tab=audit</code>）；已生效筛选条件显示为标签，可单个 ✕ 移除或「清除全部」。</p></div>
+        <div class="card" style="margin-top:9px"><h4>📉 核减金额列（FR-03-6）</h4>
+          <p>核减金额 = 申报总额 − 审核总额，附核减比例；未复核显示「—」。金额列右对齐等宽显示，一眼看出审减结果。</p></div>
+        <div class="callout" style="margin-top:9px">操作列 <b>sticky 固定在最右侧</b>，横向滚动时始终可见；表头固定、单元格不换行。</div>
+      </div>
+    </div>
+  </div>
+  <div class="note">这页最能引起共鸣——现场可以顺手打开真实台账页演示：空项目 4 张动作卡、有数据后变一行操作条、行内只有一个主按钮。如果听众提"按钮藏起来找不到"，答：⋯ 菜单里 8 项操作齐全，且"下一步"逻辑是系统判断的，不用记。</div>
+  <div class="s-foot"><span>PRD V3.1 · 4.3 / 4.16</span><span>12</span></div>
+</section>
+
+<!-- ================= 13 FR-13 登记流程 ================= -->
+<section class="slide sec-fr" data-sec="05 功能深度" data-title="FR-13 登记与状态流转">
+  <div class="s-head"><div class="eyebrow">05 · FR-13（新增）</div><h2>登记流程改造：保存即登记，随时可撤回</h2>
+    <div class="lead">取消操作列独立的「登记」按钮（含原「补全信息」），待登记行主按钮统一为「✎ 初审 / 编辑」。</div></div>
+  <div class="body">
+    <div class="flow" style="margin-bottom:13px">
+      <div class="n" style="border-color:#d97706">待登记<small>未填名称 / 未核对</small></div>
+      <span class="ar">—「✎ 初审 / 编辑」保存→</span>
+      <div class="n" style="border-color:#0284c7">已登记<small>可发起 AI 审查</small></div>
+      <span class="ar">—「✍️ 人工复核」保存→</span>
+      <div class="n" style="border-color:#15803d">已复核<small>数据定稿</small></div>
+      <span class="ar">↩</span>
+      <div class="n" style="border-color:#b91c1c">取消登记<small>已登记 / 已复核均可</small></div>
+    </div>
+    <div class="grid g2">
+      <div class="card">
+        <h4>✅ 保存即登记（FR-13-2 / 13-3）</h4>
+        <p>初审/编辑保存时，若状态仍为「待登记」且<b>已填债权人名称</b> → 自动置为「已登记」；弹窗内提前提示"保存后将自动登记"。</p>
+        <p style="margin-top:6px">名称为空时保存仍成功，但状态保持「待登记」并提示"债权人名称为必填项；不填写将仍保持待登记"。</p>
+        <div class="hr"></div>
+        <h4>↩ 取消登记（FR-13-4）</h4>
+        <p>行内「⋯ → ↩ 取消登记」，状态回到「待登记」，<b>申报材料、AI 审查与人工复核记录全部保留</b>；已是待登记时接口返回 400。</p>
+      </div>
+      <div class="card">
+        <h4>🧮 申报总额 / 审核总额 = 分项自动汇总（FR-13-5 / 13-6 / 13-7）</h4>
+        <table class="tbl tight" style="margin-top:6px">
+          <tr><th>字段</th><th>行为</th></tr>
+          <tr><td class="k">申报总额</td><td>只读，随本金+利息+其他<b>实时重算</b></td></tr>
+          <tr><td class="k">审核总额</td><td>只读，随审核分项实时重算</td></tr>
+          <tr><td class="k">保存时</td><td>后端按分项重新汇总两个总额</td></tr>
+          <tr><td class="k">保护规则</td><td>分项全为 0 且原有总额时，<b>保留原总额</b>（保护仅录总额的历史数据）</td></tr>
+          <tr><td class="k">差异提示</td><td>打开弹窗时"原总额 ≠ 分项汇总" → 橙色提示"保存后将按分项汇总"</td></tr>
+        </table>
+        <div class="callout warn" style="margin-top:9px">这条规则同时解决了数据质量问题：<b>申报总额与分项不一致</b>的历史脏数据，会在下次编辑保存时被自动纠正。</div>
+      </div>
+    </div>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 4.13</span><span>13</span></div>
+</section>
+
+<!-- ================= 14 FR-14 补充材料 ================= -->
+<section class="slide sec-fr" data-sec="05 功能深度" data-title="FR-14 补充材料">
+  <div class="s-head"><div class="eyebrow">05 · FR-14（新增）</div><h2>补充材料：补交不再产生重复债权</h2>
+    <div class="lead">入口在台账行「⋯ → 📎 补充材料」与审查工作台材料区，弹窗列出已有材料与补充后的影响说明。</div></div>
+  <div class="body">
+    <div class="grid g2">
+      <div>
+        <div class="flow v" style="gap:5px">
+          <div class="n" style="border-color:#7c3aed">① 上传新材料<small>多文件，追加到该债权材料目录，不新建债权、不改编号（origin=supplement）</small></div>
+          <span class="ar" style="margin-left:14px">↓</span>
+          <div class="n" style="border-color:#7c3aed">② 同一材料预览页查看<small>新材料与原件并列，标注「📎 补充」徽标</small></div>
+          <span class="ar" style="margin-left:14px">↓</span>
+          <div class="n" style="border-color:#7c3aed">③ 后台只解析新增文件<small>避免重复 OCR 老材料；解析后"只补空、不覆盖"同步台账</small></div>
+          <span class="ar" style="margin-left:14px">↓</span>
+          <div class="n" style="border-color:#b45309">④ 自动重置审查状态<small>清空 AI 结论 · 人工复核标记未完成 · 状态退回「已登记」</small></div>
+          <span class="ar" style="margin-left:14px">↓</span>
+          <div class="n" style="border-color:#15803d">⑤ 前往重新审查<small>弹窗提供「查看全部材料预览」「前往重新审查」快捷入口</small></div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="border-color:#c4b5fd">
+          <h4>🔁 重置规则里最容易被忽略的一点</h4>
+          <p style="margin-top:5px">人工复核记录被重置时，<b>保留原意见文本与审核金额</b>——下次复核自动带出，复核人只需确认新材料带来的变化，不用重新录入。</p>
+        </div>
+        <div class="card" style="margin-top:10px">
+          <h4>为什么必须重置 AI 结论</h4>
+          <p>结论是对"当时那套材料"的判断。材料变了结论就失效，若沿用旧结论会造成"依据与材料不匹配"的审查风险。重置后重跑审查，新的 <code>prompt_version</code> 与 <code>standard_refs</code> 会重新落库留痕。</p>
+        </div>
+        <div class="callout" style="margin-top:10px">
+          <b>典型场景：</b>债权人首次申报时只提供了借条（缺转账凭证）→ AI 按举证责任规则不予确认或建议暂缓 → 债权人补交银行流水 → 补充材料 → 重跑审查 → 金额与结论随之调整。
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="note">强调"只解析新增文件"解决了实务痛点：一份 20MB 的扫描件重新 OCR 要十几分钟，这里不会重跑老材料。</div>
+  <div class="s-foot"><span>PRD V3.1 · 4.14</span><span>14</span></div>
+</section>
+
+<!-- ================= 15 FR-15 批量操作 ================= -->
+<section class="slide sec-fr" data-sec="05 功能深度" data-title="FR-15 批量操作">
+  <div class="s-head"><div class="eyebrow">05 · FR-15（新增）</div><h2>批量操作：几十上百笔不用逐笔点</h2>
+    <div class="lead">勾选行后表格上方出现批量操作条：「已选 N 笔」+ 全部批量动作 + 取消选择。</div></div>
+  <div class="body">
+    <div class="mock" style="margin-bottom:13px">
+      <div class="mock-bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span class="url">批量操作条</span></div>
+      <div class="mock-body" style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+        <span class="pill" style="font-size:12px;padding:4px 12px">已选 12 笔</span>
+        <span class="chip on">✅ 批量登记</span>
+        <span class="chip on">🤖 批量 AI 审查</span>
+        <span class="chip on">📊 导出选中台账</span>
+        <span class="chip on">📄 导出选中意见书</span>
+        <span class="chip" style="background:#fee2e2;border-color:#fecaca;color:#b91c1c">🗑 批量删除</span>
+        <span class="chip">取消选择</span>
+        <span style="flex:1"></span>
+        <span style="font-size:11.5px;color:#64748b">批量 AI 审查：并发发起 · 每 5 秒统一轮询 · 完成后汇总成功/失败笔数</span>
+      </div>
+    </div>
+    <div class="grid g4">
+      <div class="card"><h4>✅ 批量登记</h4><p>逐笔调用登记接口；缺债权人名称的<b>自动跳过并计入提示</b>（成功 X 笔，跳过 Y 笔）。</p></div>
+      <div class="card"><h4>🤖 批量 AI 审查</h4><p>并发发起、统一轮询，完成后汇总成功/失败笔数并刷新台账；<b>材料仍在解析中的自动跳过并提示</b>。</p></div>
+      <div class="card"><h4>📊 导出选中</h4><p>调用带 <code>ids</code> 的导出接口，<b>仅导出选中债权且按传入顺序排列</b>；无匹配时返回 400，避免产出空文件。</p></div>
+      <div class="card"><h4>🗑 批量删除</h4><p>二次确认，联动删除材料文件与审查记录（<b>ORM 级联删除，不残留孤儿行</b>）。</p></div>
+    </div>
+    <div class="grid g2" style="margin-top:13px">
+      <div class="callout ok"><b>为什么"批量 AI 审查"很关键：</b>提示词升级、模型更换后，需要对存量债权重跑审查。逐笔点 100 次要一两个小时，批量并发后统一等结果即可。</div>
+      <div class="callout">接口层同步支持：<code>POST /api/claims/batch-delete</code>、<code>GET /api/export/ledger?project_id=&amp;ids=</code>、<code>GET /api/export/opinions?project_id=&amp;ids=</code>。</div>
+    </div>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 4.15</span><span>15</span></div>
+</section>
+
+<!-- ================= 16 FR-16 行内下一步 ================= -->
+<section class="slide sec-fr" data-sec="05 功能深度" data-title="FR-16 行内下一步与 ⋯ 菜单">
+  <div class="s-head"><div class="eyebrow">05 · FR-16</div><h2>行内交互约定：一眼知道该做什么</h2></div>
+  <div class="body">
+    <div class="two">
+      <div>
+        <table class="tbl">
+          <tr><th style="width:38%">债权状态</th><th>行内唯一主按钮</th></tr>
+          <tr><td class="k">待登记</td><td>✎ 初审 / 编辑</td></tr>
+          <tr><td class="k">已登记（未审查）</td><td>🤖 AI 审查</td></tr>
+          <tr><td class="k">已登记（AI 审查完成）</td><td>✍️ 人工复核</td></tr>
+          <tr><td class="k">AI 审查中</td><td>⏳ 审查中（禁用态）</td></tr>
+          <tr><td class="k">已复核</td><td>📄 查看结果</td></tr>
+        </table>
+        <div class="callout" style="margin-top:11px">AI 审查徽标<b>可点击</b>直接发起或重试；解析中/失败时在操作列显示 ⏳ / ⚠ 状态旗标。</div>
+        <div class="callout" style="margin-top:9px">统计卡片（总笔数 / 待登记 / 已登记 / 已复核）<b>可点击筛选</b>，与状态分段按钮双向联动并高亮。</div>
+      </div>
+      <div>
+        <div class="card">
+          <h4>⋯ 更多菜单（浮层挂 body，不受表格滚动裁切）</h4>
+          <div class="chips" style="margin-top:8px">
+            <span class="chip">✎ 初审 / 编辑</span><span class="chip">🧭 审查工作台</span><span class="chip">✍️ 人工复核</span>
+            <span class="chip">📎 补充材料</span><span class="chip">👁 材料预览</span><span class="chip">↻ 重新解析</span>
+            <span class="chip" style="background:#fff1f2;border-color:#fecdd3;color:#be123c">↩ 取消登记（仅已登记/已复核）</span>
+            <span class="chip" style="background:#fee2e2;border-color:#fecaca;color:#b91c1c">🗑 删除该债权</span>
+          </div>
+          <p style="margin-top:9px;font-size:11.5px">浮层自动翻转与边界收敛，靠近屏幕下沿时向上弹出，不会被表格容器裁掉。</p>
+        </div>
+        <div class="grid g2" style="margin-top:10px">
+          <div class="card"><h4>❓ 使用指引</h4><p>弹窗含 6 步流程说明 + 交互小抄（P2）。</p></div>
+          <div class="card"><h4>📄 空状态引导</h4><p>无数据时"三步上手"提示；筛选无结果时提供「清除筛选条件」（P2）。</p></div>
+        </div>
+        <div class="card" style="margin-top:10px">
+          <h4>列设置（FR-03-4）</h4>
+          <p>勾选显示/隐藏任意列，偏好本地记忆（键 <code>ledger_cols_v2</code>）；默认 8 列：<b>编号 · 名称 · 性质 · 申报总额 · 核减金额 · 状态 · AI审查 · 操作</b>。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 4.16 / 4.3</span><span>16</span></div>
+</section>
+
+<!-- ================= 17 AI 方法论 ================= -->
+<section class="slide sec-ai" data-sec="06 AI 审查" data-title="AI 审查方法论 · 决策树">
+  <div class="s-head"><div class="eyebrow">06 · FR-04 核心</div><h2>AI 审查方法论：五要素 + 7 级决策树</h2>
+    <div class="lead">不是"让 AI 随便看看"，而是把《破产债权审查操作指南》的方法论固化进提示词，按固定顺序逐级审查。</div></div>
+  <div class="body">
+    <div class="card tint" style="margin-bottom:12px">
+      <h4>审查五要素</h4>
+      <div class="grid g5" style="margin-top:7px">
+        <div><b style="font-size:12px">① 主体资格</b><p style="font-size:11.5px">申报人是否合同相对方 / 适格债权人？债权转让是否有效通知？</p></div>
+        <div><b style="font-size:12px">② 债权性质</b><p style="font-size:11.5px">有财产担保 / 建设工程优先 / 职工 / 税款 / 普通 / 劣后？是否主张优先受偿权？</p></div>
+        <div><b style="font-size:12px">③ 债权金额</b><p style="font-size:11.5px">本金是否正确？利息是否超法定上限（民间借贷 ≤ LPR 四倍）？违约金是否补偿性？</p></div>
+        <div><b style="font-size:12px">④ 时效性</b><p style="font-size:11.5px">是否超过诉讼时效（3 年）？是否超过强制执行期间（2 年）？</p></div>
+        <div><b style="font-size:12px">⑤ 特别要件</b><p style="font-size:11.5px">合同特殊条款？涉诉涉裁涉刑？生效法律文书？</p></div>
+      </div>
+    </div>
+    <h4 style="font-size:13.5px;margin:0 0 8px">逐级审查决策树（每级必须给出结论并写入 <code>review_process</code>）</h4>
+    <div class="tree">
+      <div class="lv"><b>第 1 级</b><div class="nm">主体资格</div><p>不适格 → rejected</p></div>
+      <div class="lv"><b>第 2 级</b><div class="nm">时效</div><p>超时效且无中断中止证据 → rejected</p></div>
+      <div class="lv"><b>第 3 级</b><div class="nm">暂缓情形</div><p>涉诉涉裁待决 / 附条件未成就 / 涉刑未结 / 保证人将来求偿权 → partial</p></div>
+      <div class="lv"><b>第 4 级</b><div class="nm">生效法律文书</div><p>已有生效判决/裁决/调解书 → 应当确认（既判力，虚假诉讼除外）</p></div>
+      <div class="lv"><b>第 5 级</b><div class="nm">债权性质</div><p>担保 / 建工优先 / 职工 / 税款 / 普通 / 劣后</p></div>
+      <div class="lv"><b>第 6 级</b><div class="nm">金额核算</div><p>本金+凭证+账册；利息受理日止息；违约金 1.3 倍分界；外币按受理日汇率</p></div>
+      <div class="lv"><b>第 7 级</b><div class="nm">特别要件</div><p>虚假债权嫌疑（申报与证据明显不符）→ rejected</p></div>
+    </div>
+    <div class="grid g3" style="margin-top:13px">
+      <div class="card"><h4>输出结论三档</h4><p><span class="pill ok">认可 confirmed</span> <span class="pill warn">部分认可 partial</span> <span class="pill no">不认可 rejected</span></p></div>
+      <div class="card"><h4>结构化意见内容</h4><p>五要素核查、材料证据、7 级审查过程、法律依据、风险提示、建议金额、引用标准条目。</p></div>
+      <div class="card"><h4>未配置模型时</h4><p>自动降级为<b>内置规则引擎</b>，流程不中断，记录 <code>prompt_version=rule-engine</code>。</p></div>
+    </div>
+  </div>
+  <div class="note">这一页要讲"方法论"而不是"AI 很聪明"。开场可以先问听众：工程款优先权和民间借贷，审查要点能一样吗？不一样——所以在决策树之外，还需要类型化标准（下一页）。</div>
+  <div class="s-foot"><span>PRD V3.1 · 4.4</span><span>17</span></div>
+</section>
+
+<!-- ================= 18 提示词 v2 ================= -->
+<section class="slide sec-ai" data-sec="06 AI 审查" data-title="提示词 v2 · 规则与类型标准">
+  <div class="s-head"><div class="eyebrow">06 · FR-04 升级</div><h2>提示词 v2-2026-09：通用规则 7→20 · 类型标准 6→11</h2>
+    <div class="lead">"特别法优先""既判力""举证责任"是通用底座；真正决定结论质量的是<b>按类型差异化的审查要点</b>。</div></div>
+  <div class="body">
+    <div class="grid g23">
+      <div class="card">
+        <h4>通用审查规则 20 条（节选）</h4>
+        <table class="tbl tight" style="margin-top:6px">
+          <tr><td class="k" style="width:22%">1–3</td><td>特别法优于一般法；生效文书既判力（虚假诉讼除外）；认定不得超出申报范围</td></tr>
+          <tr><td class="k">4–7</td><td>举证责任在债权人；<b>受理日止息</b>（第 46 条第 2 款）；保证人将来求偿权暂缓；管理人中立</td></tr>
+          <tr><td class="k">8–11</td><td>书面申报原则；原件核对；<b>连带债权人认定为"一笔债权"</b>；未到期债权视为到期</td></tr>
+          <tr><td class="k">12–14</td><td>附条件债权（成就确认/未成就暂缓）；涉诉涉裁涉刑暂缓；<b>债权转让须通知债务人</b></td></tr>
+          <tr><td class="k">15–17</td><td>部分清偿冲抵顺序（费用→利息→本金）；外币按受理日汇率折算；<b>未主张优先权→普通债权</b></td></tr>
+          <tr><td class="k">18–20</td><td>超时效/超执行期间不予确认（除有中断中止证据）；合同解除按实际损失；<b>抵销权仅债权人可主张</b></td></tr>
+        </table>
+        <div class="callout" style="margin-top:8px;font-size:11.5px">回退开关：<code>AI_PROMPT_PROFILE=full|basic</code>。full ≈ 2,060 字符；basic 为核心 7 条且不注入类型标准 ≈ 1,415 字符。</div>
+      </div>
+      <div class="card">
+        <h4>类型化审查标准 11 类</h4>
+        <div class="chips" style="margin-top:7px">
+          <span class="chip on">借贷</span><span class="chip on">购销</span><span class="chip on">金融</span><span class="chip on">金融不良</span>
+          <span class="chip on">工程款</span><span class="chip on">购房</span><span class="chip on">租赁</span><span class="chip on">职工</span>
+          <span class="chip on">税收</span><span class="chip on">抵销</span><span class="chip on">取回权</span>
+        </div>
+        <p style="margin-top:8px;font-size:11.5px">每类含 5–11 条编号要点，引用时标注「依据：类型-N」。</p>
+        <div class="hr"></div>
+        <p style="font-size:12px"><b>借贷（示例要点）</b></p>
+        <ul style="font-size:11.5px;color:#54657d;line-height:1.66;margin:4px 0 0;padding-left:15px">
+          <li>利率上限：不超过合同成立时一年期 <b>LPR 的 4 倍</b>，超出部分不予确认</li>
+          <li>砍头息：以<b>实际出借金额</b>为本金；利滚利不得突破最初本金的 LPR4 倍上限</li>
+          <li>逾期利率＋违约金＋其他费用合计同样不得超上限</li>
+        </ul>
+        <p style="font-size:12px;margin-top:9px"><b>工程款（示例要点）</b></p>
+        <ul style="font-size:11.5px;color:#54657d;line-height:1.66;margin:4px 0 0;padding-left:15px">
+          <li>优先受偿范围＝工程价款（人工/材料/机械/管理/利润），<b>不含利息、违约金、损害赔偿</b></li>
+          <li>行使期限：应付款之日起 <b>18 个月</b>，逾期丧失优先权</li>
+          <li>顺位：工程价款优先受偿权 ＞ 抵押权 ＞ 普通债权（《民法典》第 807 条）</li>
+        </ul>
+        <div class="callout ok" style="margin-top:9px;font-size:11.5px">另有：购销（违约金超实际损失 30% 部分劣后）、购房者（消费者购房人特别保护）、金融不良（转让链条连续性与通知义务）、租赁（直接损失与可得利益区分）等。</div>
+      </div>
+    </div>
+  </div>
+  <div class="note">举一个最直观的对比：同样一笔钱，借贷类要查 LPR 4 倍、砍头息、利滚利；工程款类要查 18 个月行使期限和优先受偿范围（利息不算在内）。这两套要点用同一个"通用标准"是覆盖不到的——这就是 V3.1 扩到 11 类的原因。</div>
+  <div class="s-foot"><span>PRD V3.1 · 4.4 提示词组成</span><span>18</span></div>
+</section>
+
+<!-- ================= 19 类型自动判定 ================= -->
+<section class="slide sec-ai" data-sec="06 AI 审查" data-title="类型自动判定与命中率">
+  <div class="s-head"><div class="eyebrow">06 · FR-04-4</div><h2>类型自动判定：三级回退，把标准真正"挂上钩"</h2>
+    <div class="lead">标准写得再好，判定不出类型就等于没用。V3.1 之前真实数据 32 笔里 29 笔因台账「债权类型」为空而退回通用标准。</div></div>
+  <div class="body">
+    <div class="flow" style="margin-bottom:13px">
+      <div class="n">① 台账「债权类型」<small>自由文本，关键词匹配 11 类</small></div><span class="ar">→</span>
+      <div class="n">② 「债权种类」同义归一<small>金融债权→金融 · 工程债权→工程款 …</small></div><span class="ar">→</span>
+      <div class="n">③ 材料正文特征短语兜底<small>仅前两列为空时启用，避免材料偶发表述覆盖台账口径</small></div><span class="ar">→</span>
+      <div class="n" style="border-color:#7c3aed">④ 精化修正<small>抵销 / 取回权 / 金融不良可按材料对台账口径精化</small></div>
+    </div>
+    <div class="grid g32">
+      <div class="card">
+        <h4>命中率对比（真实台账 32 笔实测）</h4>
+        <table class="tbl tight" style="margin-top:7px">
+          <tr><th style="width:34%">版本</th><th>类型化标准命中</th><th style="width:34%">说明</th></tr>
+          <tr><td class="k">V3.0（升级前）</td><td><span class="pill no">0 / 32</span></td><td>仅按「债权类型」字段判定，该字段普遍为空</td></tr>
+          <tr><td class="k">V3.1（升级后）</td><td><span class="pill ok">22 / 32</span></td><td>三级回退 + 同义归一 + 材料兜底</td></tr>
+        </table>
+        <div style="margin-top:10px">
+          <div style="font-size:11.5px;color:#64748b;margin-bottom:2px">升级前命中率</div>
+          <div class="bar old"><i style="width:0%"></i></div>
+          <div style="font-size:11.5px;color:#64748b;margin:9px 0 2px">升级后命中率　<b style="color:#7c3aed">68.75%</b></div>
+          <div class="bar"><i style="width:68.75%"></i></div>
+        </div>
+        <div class="callout warn" style="margin-top:11px">仍有 10 笔走通用标准——原因多为台账性质/类型填写不规范。统计层已做同义归一并提示「未标注」。</div>
+      </div>
+      <div>
+        <div class="card" style="border-color:#c4b5fd">
+          <h4>💡 提升命中率的低成本建议</h4>
+          <ul style="font-size:12px;line-height:1.7">
+            <li>录入时按 11 类标准填写「债权类型」</li>
+            <li>不可归类时宁可留空，交由材料兜底判定</li>
+            <li>关键词表可按本所业务继续扩展</li>
+          </ul>
+        </div>
+        <div class="card" style="margin-top:10px">
+          <h4>验收口径</h4>
+          <p>借贷类命中「借贷」标准并在意见中出现 <b>LPR 4 倍</b>表述；工程款类命中「工程款」标准并出现 <b>18 个月 / 优先受偿</b>表述；<b>真实台账命中率 ≥ 60%</b>。</p>
+          <p style="margin-top:6px">当前实测 68.75%，达标。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="note">这页给出的是"可测量的证据"，不是感觉。如果听众问 22/32 是怎么算的，答：用脚本对真实台账跑类型匹配，逐笔比对命中的标准键（_test_audit_standards.py）。</div>
+  <div class="s-foot"><span>PRD V3.1 · 4.4 / 7 验收标准</span><span>19</span></div>
+</section>
+
+<!-- ================= 20 可追溯 ================= -->
+<section class="slide sec-ai" data-sec="06 AI 审查" data-title="结论可追溯 · 四个字段">
+  <div class="s-head"><div class="eyebrow">06 · FR-04-8 / 13</div><h2>结论可追溯：说清"这笔凭什么这么认定"</h2>
+    <div class="lead">每次审查把"用了哪版提示词、注入了哪类标准、引用了哪几条、依据哪个受理日"全部落库。</div></div>
+  <div class="body">
+    <div class="grid g4" style="margin-bottom:13px">
+      <div class="card tint"><h4><code>prompt_version</code></h4><p>本次审查所用提示词版本，当前 <b>v2-2026-09</b>；规则引擎降级时记 <code>rule-engine</code>。</p></div>
+      <div class="card tint"><h4><code>injected_standards</code></h4><p>本次实际注入了哪一类（或两类）类型化标准，如「工程款」。</p></div>
+      <div class="card tint"><h4><code>standard_refs</code></h4><p>AI 实际引用的标准条目编号，如 <b>工程款-2、工程款-3</b>；决策树各级 detail 末尾亦带「（依据：工程款-3）」。</p></div>
+      <div class="card tint"><h4><code>injected_case_info</code></h4><p>本次注入的案件信息（案号 / 债务人 / 管理人 / 破产受理日），悬停可查看当次审查所用取值。</p></div>
+    </div>
+    <div class="mock">
+      <div class="mock-bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span class="url">审查工作台 · 意见面板顶部</span></div>
+      <div class="mock-body">
+        <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:9px 12px;font-size:12.5px">
+          🔎 <b>提示词</b> v2-2026-09 &nbsp;·&nbsp; <b>标准</b> 工程款 &nbsp;·&nbsp; <b>引用</b> 工程款-2、工程款-3 &nbsp;·&nbsp; <b>案件信息</b> 案号（2024）川19破1号 · 破产受理日 2024-05-20
+        </div>
+        <div style="margin-top:9px;font-size:12px;color:#475569">
+          <b>第 3 级 · 债权性质</b>　结论：部分通过　detail：主张建设工程价款优先受偿权，未同时主张的按普通债权认定（规则17）；优先受偿范围不含利息与违约金<b>（依据：工程款-2）</b>
+        </div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:13px">
+      <div class="callout ok"><b>业务价值一 · 复核更快：</b>复核人不必重新翻材料，直接看 AI 引用了哪条标准，判断"依据是否正确、标准是否适用"。</div>
+      <div class="callout ok"><b>业务价值二 · 口径可复现：</b>提示词升级会改变结论口径，留痕后可对同一批债权重跑并逐笔比对差异，而不是"感觉和以前不一样了"。</div>
+    </div>
+  </div>
+  <div class="note">这一页是"可信度"的核心证据。可以反问听众：如果 AI 说"这笔不予确认"，你敢直接采信吗？不敢——但如果它告诉你依据是《企业破产法》第 46 条和"工程款-3（18 个月行使期限）"，你就能在几秒内判断它对不对。</div>
+  <div class="s-foot"><span>PRD V3.1 · 4.4 / 5.1</span><span>20</span></div>
+</section>
+
+<!-- ================= 21 案件信息与日期纪律 ================= -->
+<section class="slide sec-ai" data-sec="06 AI 审查" data-title="案件信息注入与日期纪律">
+  <div class="s-head"><div class="eyebrow">06 · FR-04-11 / 12 / 14</div><h2>破产受理日：所有期间判断的唯一基准</h2>
+    <div class="lead">审查提示词附带【案件信息】块（案号 / 债务人 / 管理人 / <b>破产受理日</b>），规定五项期间判断一律以破产受理日为基准。</div></div>
+  <div class="body">
+    <div class="grid g5" style="margin-bottom:13px">
+      <div class="card"><h4>诉讼时效</h4><p>3 年，以受理日为判断基准</p></div>
+      <div class="card"><h4>强制执行期间</h4><p>2 年</p></div>
+      <div class="card"><h4>优先权行使期间</h4><p>工程款 18 个月</p></div>
+      <div class="card"><h4>撤销权期间</h4><p>以受理日为基准</p></div>
+      <div class="card"><h4>利息止息</h4><p>受理日停止计息（第 46 条）</p></div>
+    </div>
+    <div class="grid g2">
+      <div class="card" style="border-color:#fcd34d;background:#fffbf0">
+        <h4 style="color:#b45309">🚫 受理日缺失时的强制行为</h4>
+        <p style="color:#7c5a1e;margin-top:5px">模型<b>必须</b>写明"项目未填写破产受理日，无法判断，需管理人补充后重新审查"，该级 result 记「待核实」；</p>
+        <p style="color:#7c5a1e;margin-top:5px"><b>不得臆造日期、不得用申报日替代受理日。</b></p>
+        <div class="hr" style="background:#f3ddb0"></div>
+        <p style="color:#7c5a1e"><b>界面配合：</b>项目未填受理日时，台账与审查页显示橙色提示条并提供「现在补填 →」直达项目管理。</p>
+      </div>
+      <div class="card" style="border-color:#fcd34d;background:#fffbf0">
+        <h4 style="color:#b45309">📅 日期纪律（提取与审查均适用）</h4>
+        <ul style="color:#7c5a1e;line-height:1.72;margin-top:5px">
+          <li>禁止把材料中的年份改写成当前年份</li>
+          <li>禁止凭申报日 / 受理日反推材料未载明的日期</li>
+          <li>字段提取照抄材料原文日期；若模型改写年份，<b>按材料原值校正</b>（同年月日优先采用材料年份）</li>
+          <li>台账字段与材料原件不一致时，<b>以材料原件为准并列入 risks</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:13px"><b>为什么单独讲这一条：</b>破产债权的时效、止息、优先权期间全部锚定受理日。基准日期一旦被模型"猜"，结论就会整体偏移——所以宁可输出"无法判断"，也不允许编造。</div>
+  </div>
+  <div class="note">如果要用真实案例说明：某笔债权材料中的申报时间是 2020 年，系统曾把年份按"当前年份"改写导致时效结论失真；现在既有提示词日期纪律，也有提取后的材料原文校正逻辑（该案例已由管理人人工核实处理）。受理日字段当前仍为空，建议会后补填后再重跑相关债权。</div>
+  <div class="s-foot"><span>PRD V3.1 · 4.4 / 5.3</span><span>21</span></div>
+</section>
+
+<!-- ================= 22 人工复核与意见书 ================= -->
+<section class="slide sec-ai" data-sec="06 复核与文书" data-title="FR-05/06 人工复核与意见书">
+  <div class="s-head"><div class="eyebrow">06 · FR-05 / FR-06</div><h2>人工复核定稿 → 出具公文格式通知书</h2>
+    <div class="lead">AI 给建议，人做决定；定稿后一键生成对外文书。</div></div>
+  <div class="body">
+    <div class="grid g2">
+      <div class="card">
+        <h4>人工复核（FR-05）</h4>
+        <table class="tbl tight" style="margin-top:6px">
+          <tr><th style="width:34%">项目</th><th>规则</th></tr>
+          <tr><td class="k">申报金额</td><td>只读展示</td></tr>
+          <tr><td class="k">审核金额</td><td>可填，<b>默认取 AI 建议值</b>；总额留空按分项自动求和</td></tr>
+          <tr><td class="k">审查结论</td><td>认可 / 部分认可 / 不认可</td></tr>
+          <tr><td class="k">确认债权性质</td><td>7 类下拉；保存后同步台账 <code>debt_nature</code>，<b>看板"已定论侧"性质口径优先取该字段</b></td></tr>
+          <tr><td class="k">人工审查意见</td><td>必填意见 + 审查人</td></tr>
+          <tr><td class="k">保存后</td><td>状态置「已复核」，数据定稿；台账显示核减金额与比例</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h4>意见书预览与编辑（FR-06）</h4>
+        <p style="margin-top:5px"><b>《破产债权审查结果通知书》</b>公文版式：文号 / 致 / 申报情况表 / 审查结果表 / 四类结论勾选 / 差额说明 / 法律依据 / 权利告知 / 落款。</p>
+        <div class="two" style="gap:10px;margin-top:9px">
+          <div>
+            <p style="font-size:12px"><b>可编辑</b></p>
+            <ul style="font-size:11.5px;color:#54657d;line-height:1.65;margin:3px 0 0;padding-left:15px">
+              <li>四类结论勾选</li><li>审查意见说明</li><li>材料关键证据</li><li>差额原因</li><li>法律依据</li>
+            </ul>
+          </div>
+          <div>
+            <p style="font-size:12px"><b>自动生成（不可编辑）</b></p>
+            <ul style="font-size:11.5px;color:#54657d;line-height:1.65;margin:3px 0 0;padding-left:15px">
+              <li>申报/审查金额表</li><li>差额金额</li><li>权利告知与落款模板</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:10px;font-size:11.5px">支持<b>保存编辑稿</b>，此后导出 Word 按编辑稿生成；未编辑时用 AI 默认稿。批量导出 zip 时各债权自动应用其编辑稿。</div>
+        <div class="callout no" style="margin-top:9px;font-size:11.5px"><b>对外文书不含内部审查过程（决策树）与标准引用编号</b>——这些属于内部工作底稿，不随通知书对外披露。</div>
+      </div>
+    </div>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 4.5 / 4.6</span><span>22</span></div>
+</section>
+
+<!-- ================= 23 FR-07 在线申报 ================= -->
+<section class="slide sec-fr" data-sec="05 功能深度" data-title="FR-07 在线申报 · 证据目录表">
+  <div class="s-head"><div class="eyebrow">05 · FR-07（V3.1 改造）</div><h2>云端申报页：第 6 节改为"证据目录表"</h2>
+    <div class="lead">债权人<b>无需登录</b>填写信息并上传材料；V3.1 删除原自由上传区与两个扫描件必传槽位，改为一行一条证据。</div></div>
+  <div class="body">
+    <div class="grid g32">
+      <div>
+        <div class="mock">
+          <div class="mock-bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i><span class="url">6 上传证据材料 · 证据目录</span></div>
+          <div class="mock-body">
+            <div class="mrow hd" style="grid-template-columns:34px 1fr 1.2fr 62px">
+              <span>序号</span><span>证据名称（自主填写）</span><span>上传证据材料</span><span class="c">操作</span>
+            </div>
+            <div class="mrow" style="grid-template-columns:34px 1fr 1.2fr 62px"><span>1</span><span>借款合同</span><span style="color:#2563eb">📎 借款合同.pdf</span><span class="c" style="color:#94a3b8">删除</span></div>
+            <div class="mrow" style="grid-template-columns:34px 1fr 1.2fr 62px"><span>2</span><span>银行转账凭证</span><span style="color:#2563eb">📎 IMG_2031.jpg</span><span class="c" style="color:#94a3b8">删除</span></div>
+            <div class="mrow" style="grid-template-columns:34px 1fr 1.2fr 62px"><span>3</span><span>催收通知及签收记录</span><span style="color:#2563eb">📎 催收函.pdf、签收单.jpg</span><span class="c" style="color:#94a3b8">删除</span></div>
+            <div class="mrow" style="grid-template-columns:34px 1fr 1.2fr 62px;border-style:dashed;color:#94a3b8"><span>4</span><span>（可继续填写）</span><span>点击上传材料</span><span class="c">—</span></div>
+            <div class="mrow" style="grid-template-columns:34px 1fr 1.2fr 62px;border-style:dashed;color:#94a3b8"><span>5</span><span>…</span><span>…</span><span class="c">—</span></div>
+            <div style="display:flex;gap:8px;align-items:center;margin-top:7px">
+              <span class="chip on">＋ 添加一行</span>
+              <span style="font-size:10.5px;color:#7c8aa0">默认 8 行 × 2 列（证据名称 + 上传材料，可多选）</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card"><h4>🧾 材料入库命名规则（FR-07-8）</h4>
+          <p>按 <b>「证据名称-原文件名」</b>上传（未填证据名称时保留原名），使管理端台账材料名与证据目录一一对应；本地打包 ZIP 按 <code>证据材料/序号 证据名称/文件名</code> 分目录。</p></div>
+        <div class="card" style="margin-top:9px"><h4>✅ 提交校验调整（FR-07-9）</h4>
+          <p>取消"填法代/代理人必须上传扫描件"的硬校验，改为两种<b>软确认</b>：① 未上传任何材料；② 只填了证据名称却没上传材料。</p></div>
+        <div class="card" style="margin-top:9px"><h4>🔄 拉取与导入（FR-07-3 / 4 / 5 / 6）</h4>
+          <p>台账页展示本项目云端申报地址（自动携带项目码/案号/债务人/管理人），支持复制与打开；「拉取云端申报」「拉取并导入台账」幂等去重（云申报号防重复）；导入时<b>同名债权人查重提示</b>。</p></div>
+        <div class="card" style="margin-top:9px;border-color:#a7f3d0;background:#f2fbf5"><h4>🌐 缓存与草稿</h4>
+          <p>接收服务对 HTML 响应加 <code>Cache-Control: no-cache, must-revalidate</code>（保留 ETag，未变更走 304），避免更新申报页后访问者仍看到旧版；草稿改存 <code>evidence</code>，旧草稿材料自动归入一行「其他材料（旧版草稿）」，不丢失。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="note">现场演示这一页最直观：打开云端申报地址，填一行"借款合同"并上传，说明管理端收到的材料名就是"借款合同-原文件名"，台账与证据目录能对上。</div>
+  <div class="s-foot"><span>PRD V3.1 · 4.7</span><span>23</span></div>
+</section>
+
+<!-- ================= 24 FR-08 数据后台 ================= -->
+<section class="slide sec-data" data-sec="07 数据后台" data-title="FR-08 数据后台改版">
+  <div class="s-head"><div class="eyebrow">07 · FR-08（V3.1 改版）</div><h2>数据后台：从"一个口径"到"三组结论 + 四张构成图"</h2>
+    <div class="lead">原看板只有"审核金额 &gt; 0"一个口径，无法区分确认与否定。现在按结论分三组呈现，看清"报了多少、认了多少、否了多少"。</div></div>
+  <div class="body">
+    <div class="grid g3" style="margin-bottom:6px">
+      <div class="card" style="border-top:4px solid #16a34a">
+        <h4 style="color:#15803d">✅ 已审查确认 <span class="pill mut" style="float:right;font-weight:600">示意数值</span></h4>
+        <div class="num-lg" style="color:#15803d">14 <span class="u">笔</span></div>
+        <p style="margin-top:4px">金额 <b>8,642.15</b> 万元<br>其中：本金 6,120.30 ／ 利息 2,110.85 ／ 其他 411.00</p>
+        <div class="hr"></div>
+        <p style="font-size:11.5px"><b>附按债权性质明细</b>（7 类分别列示）</p>
+      </div>
+      <div class="card" style="border-top:4px solid #d97706">
+        <h4 style="color:#b45309">⏸ 暂缓确认 <span class="pill mut" style="float:right;font-weight:600">示意数值</span></h4>
+        <div class="num-lg" style="color:#b45309">3 <span class="u">笔</span></div>
+        <p style="margin-top:4px">金额 <b>1,208.60</b> 万元<br>其中：本金 980.00 ／ 利息 205.40 ／ 其他 23.20</p>
+        <div class="hr"></div>
+        <p style="font-size:11.5px">涉诉涉裁待决、附条件未成就等情形</p>
+      </div>
+      <div class="card" style="border-top:4px solid #dc2626">
+        <h4 style="color:#b91c1c">⛔ 已否定 <span class="pill mut" style="float:right;font-weight:600">示意数值</span></h4>
+        <div class="num-lg" style="color:#b91c1c">2 <span class="u">笔</span></div>
+        <p style="margin-top:4px">金额 <b>356.40</b> 万元<br>其中：本金 300.00 ／ 利息 56.40 ／ 其他 0.00</p>
+        <div class="hr"></div>
+        <p style="font-size:11.5px">另列「尚未出审查结论 N 笔」<b>不计入三组</b></p>
+      </div>
+    </div>
+    <p style="font-size:10.5px;color:#94a3b8;margin:0 0 11px">※ 上表为界面版式示意（非真实案件数据）；真实看板按台账逐笔口径实时计算。</p>
+    <div class="grid g2">
+      <div class="card">
+        <h4>口径规则（可复算、可解释）</h4>
+        <table class="tbl tight" style="margin-top:6px">
+          <tr><th style="width:26%">维度</th><th>规则</th></tr>
+          <tr><td class="k">结论优先级</td><td>人工复核结论（认可/部分认可/不认可）→ 无人工结论时取 AI 结论（confirmed/partial/rejected）；两者皆无＝未出结论</td></tr>
+          <tr><td class="k">金额口径</td><td>已录审核金额则取审核金额，否则取申报金额；悬停「笔数·金额」可看申报与审核原始值</td></tr>
+          <tr><td class="k">性质口径</td><td>申报侧按 <code>claim_nature</code>；已定论侧优先取复核确认的 <code>debt_nature</code>（可归入 7 类时），否则回退申报性质；无法归类计入「未标注」</td></tr>
+          <tr><td class="k">未出结论</td><td>单独列示「尚未出审查结论 N 笔（<b>不计入三组</b>）」</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="card">
+          <h4>四张构成图</h4>
+          <div class="grid g4" style="gap:6px;margin-top:8px;text-align:center">
+            <div><div class="donut" style="width:78px;height:78px;background:conic-gradient(#0f766e 0 62%,#14b8a6 62% 86%,#e2e8f0 86% 100%)"><span class="ctr">金额</span></div><p style="font-size:10.5px;margin-top:5px">申报金额构成</p></div>
+            <div><div class="donut" style="width:78px;height:78px;background:conic-gradient(#4338ca 0 42%,#818cf8 42% 70%,#c7d2fe 70% 88%,#e2e8f0 88% 100%)"><span class="ctr">性质</span></div><p style="font-size:10.5px;margin-top:5px">申报性质构成</p></div>
+            <div><div class="donut" style="width:78px;height:78px;background:conic-gradient(#15803d 0 58%,#4ade80 58% 84%,#e2e8f0 84% 100%)"><span class="ctr">金额</span></div><p style="font-size:10.5px;margin-top:5px">已确认金额构成</p></div>
+            <div><div class="donut" style="width:78px;height:78px;background:conic-gradient(#b45309 0 46%,#fbbf24 46% 74%,#e2e8f0 74% 100%)"><span class="ctr">性质</span></div><p style="font-size:10.5px;margin-top:5px">已确认性质构成</p></div>
+          </div>
+          <p style="font-size:11.5px;margin-top:8px">保留「登记状态」「AI 审查结论」两张统计卡片；图表库本地化，离线可用。</p>
+        </div>
+        <div class="callout no" style="margin-top:10px"><b>已下线：</b>申报金额区间分布柱状图、债权种类统计表、债权种类分布饼图（接口不再返回 <code>brackets</code> / <code>by_category</code>）。</div>
+      </div>
+    </div>
+  </div>
+  <div class="note">讲口径时强调"可复算"：三组笔数金额可以用逐笔复算脚本核对（_test_dashboard_groups.py），不是拍脑袋的统计。另支持按债权性质筛选看板。</div>
+  <div class="s-foot"><span>PRD V3.1 · 4.8</span><span>24</span></div>
+</section>
+
+<!-- ================= 25 FR-09/10 ================= -->
+<section class="slide sec-data" data-sec="07 数据后台" data-title="FR-09/10 明细查询与导入导出">
+  <div class="s-head"><div class="eyebrow">07 · FR-09 / FR-10</div><h2>明细查询与导入导出：和 Excel 无缝衔接</h2></div>
+  <div class="body">
+    <div class="grid g2">
+      <div class="card">
+        <h4>FR-09 债权明细查询（类 Excel）</h4>
+        <table class="tbl tight" style="margin-top:6px">
+          <tr><th style="width:26%">能力</th><th>说明</th></tr>
+          <tr><td class="k">筛选</td><td>名称 / 信用代码 / 身份证关键词、状态、债权种类、债权性质、申报金额区间（≥ / ≤）</td></tr>
+          <tr><td class="k">排序</td><td>点击表头排序（金额按数值、文本按中文），当前排序列显示升降序标识</td></tr>
+          <tr><td class="k">合计</td><td>表尾合计行：笔数与各金额列合计</td></tr>
+          <tr><td class="k">跳转</td><td>点击债权编号/名称进入材料预览页</td></tr>
+          <tr><td class="k">重置</td><td>一键重置筛选条件</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h4>FR-10 导入导出</h4>
+        <table class="tbl tight" style="margin-top:6px">
+          <tr><th style="width:32%">动作</th><th>说明</th></tr>
+          <tr><td class="k">导出台账 Excel</td><td>含序号列与完整字段；支持 <code>ids</code> 只导出选中债权（按传入顺序）</td></tr>
+          <tr><td class="k">导入台账 Excel</td><td>表头自动识别，按债权编号更新或新增，支持长数字文本转换（防科学计数法）</td></tr>
+          <tr><td class="k">下载导入模板</td><td>仅表头 + 预留空行</td></tr>
+          <tr><td class="k">导出通知书 Word</td><td>公文格式（黑体标题、仿宋正文、文号、落款）</td></tr>
+          <tr><td class="k">批量导出意见书</td><td>zip 打包，各债权应用其编辑稿；支持 <code>ids</code></td></tr>
+        </table>
+        <div class="callout" style="margin-top:9px;font-size:11.5px">验收要求：Excel <b>往返一致</b>（导出→导入无错位）；<code>ids</code> 导出不含未选债权；无匹配时返回 400 而非空文件。</div>
+      </div>
+    </div>
+    <div class="grid g3" style="margin-top:13px">
+      <div class="card tint"><h4>为什么强调"往返一致"</h4><p>管理人日常仍会用 Excel 做二次加工；导出→改→导入必须能对上号，否则数据会分叉。</p></div>
+      <div class="card tint"><h4>为什么强调"按传入顺序"</h4><p>按选中导出时，台账页的勾选顺序即为文书/台账的排列顺序，便于批量盖章与归档。</p></div>
+      <div class="card tint"><h4>为什么强调"长数字"</h4><p>统一社会信用代码、银行账号在 Excel 里易被转成科学计数法，导入时统一按文本处理。</p></div>
+    </div>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 4.9 / 4.10</span><span>25</span></div>
+</section>
+
+<!-- ================= 26 模型配置与部署 ================= -->
+<section class="slide sec-data" data-sec="07 支撑能力" data-title="FR-11/12 模型配置与部署协同">
+  <div class="s-head"><div class="eyebrow">07 · FR-11 / FR-12</div><h2>模型配置与部署协同：可换、可降级、可回滚</h2></div>
+  <div class="body">
+    <div class="grid g2">
+      <div class="card">
+        <h4>FR-11 AI 模型配置</h4>
+        <ul style="font-size:12px;line-height:1.75;margin-top:5px">
+          <li>系统内配置界面（⚙️ AI 设置）：新增 / 编辑 / 删除 / 切换激活</li>
+          <li>支持任意 <b>OpenAI 兼容接口</b>（DeepSeek / GLM / 通义千问等），可保存多套配置</li>
+          <li>「测试连接」验证接口地址、Key、模型名可用性</li>
+          <li>顶栏 AI 徽标显示当前激活模型；未配置时提示降级规则引擎</li>
+          <li>生成参数可配置：<code>AI_MAX_TOKENS</code>（默认 12000）、<code>AI_TIMEOUT</code>（默认 180s）</li>
+        </ul>
+        <div class="callout warn" style="margin-top:9px;font-size:11.5px"><b>V3.1 实测教训：</b>模型返回空内容 / 被 max_tokens 截断 / 非法 JSON 三种情况分别给出可操作的具体原因，不再笼统提示"模型名或 JSON 支持"问题。</div>
+      </div>
+      <div class="card">
+        <h4>FR-12 部署与协同</h4>
+        <ul style="font-size:12px;line-height:1.75;margin-top:5px">
+          <li>服务监听局域网可访问，多台电脑协同使用（同网段）</li>
+          <li>一键启动 / 停止 / 重启脚本，自动选择空闲端口</li>
+          <li>提供防火墙放行脚本与访问地址提示</li>
+          <li>支持云端接收服务部署（公网申报），本地一键拉取</li>
+        </ul>
+        <div class="hr"></div>
+        <p style="font-size:12px"><b>云端更新流程（FR-12-5）</b></p>
+        <table class="tbl tight" style="margin-top:5px">
+          <tr><th style="width:36%">改动范围</th><th>更新方式</th></tr>
+          <tr><td class="k">仅申报页</td><td>单文件覆盖 <code>/opt/claim-receiver/static/index.html</code>，<b>无需重启服务</b></td></tr>
+          <tr><td class="k">接收服务代码</td><td>整包部署 <code>deploy.sh</code> + 重启服务</td></tr>
+        </table>
+        <p style="margin-top:8px;font-size:11.5px">云端部署保留可回滚备份：页面与代码均留存 <code>.bak-时间戳</code>。</p>
+      </div>
+    </div>
+    <div class="grid g3" style="margin-top:13px">
+      <div class="callout">安全：数据本地存储；云端申报接口令牌鉴权；管理员令牌不落前端；密钥仅存数据库 / <code>.env</code>。</div>
+      <div class="callout warn">兼容：Chrome / Edge 现代浏览器；Windows 10/11 为主；云端页对移动端浏览器可用。</div>
+      <div class="callout ok">可维护：数据库自动补列升级（老库无缝兼容新版本）；提示词版本化记录；关键操作有脚本化工具与回归测试。</div>
+    </div>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 4.11 / 4.12 / 六</span><span>26</span></div>
+</section>
+
+<!-- ================= 27 数据模型 ================= -->
+<section class="slide sec-data" data-sec="08 数据" data-title="数据模型与文件存储">
+  <div class="s-head"><div class="eyebrow">08 · 数据需求</div><h2>数据模型：7 张表 + 本地文件目录</h2></div>
+  <div class="body">
+    <table class="tbl tight">
+      <tr><th style="width:22%">表</th><th>说明</th></tr>
+      <tr><td class="k">projects</td><td>项目（案件）：名称、案号、债务人、管理人、云端项目码</td></tr>
+      <tr><td class="k">claims</td><td>债权台账：25 项业务字段 + 状态 + 解析状态（<code>parse_status</code>：pending / parsing / done / failed / <b>empty 无材料</b>）、<code>parse_started_at</code>、<code>parse_error</code></td></tr>
+      <tr><td class="k">claim_files</td><td>申报材料文件：文件名、路径、解析文本、解析状态、解析引擎、<b>材料来源 <code>origin</code></b>（空＝首次申报 / supplement＝补充材料）</td></tr>
+      <tr><td class="k">audit_results</td><td>审查结果：AI 意见（JSON）、人工复核意见、结论、意见书编辑稿、<b>提示词版本 / 注入标准 / 注入的案件信息</b></td></tr>
+      <tr><td class="k">ai_configs</td><td>AI 模型配置：名称、接口地址、Key、模型名、激活状态</td></tr>
+      <tr><td class="k">online_claims / online_claim_files</td><td>在线申报及其材料（含云端申报号、拉取时间）</td></tr>
+      <tr><td class="k">cloud_config</td><td>云端同步配置：云端地址、管理员令牌</td></tr>
+    </table>
+    <div class="grid g23" style="margin-top:13px">
+      <div class="card">
+        <h4>文件存储结构</h4>
+        <pre class="mono" style="font-size:11.5px;line-height:1.7;background:#f6f9fd;border:1px solid #e6edf7;border-radius:8px;padding:10px 12px;margin:7px 0 0;color:#334155">data/
+├── claims.db                    # SQLite 数据库
+├── uploads/&lt;项目ID&gt;/&lt;债权编号&gt;/   # 申报材料原件（含补充材料，永久保留）
+├── uploads/online/...           # 在线申报暂存
+└── exports/                     # 导出产物</pre>
+      </div>
+      <div class="card">
+        <h4>AI 意见 JSON 结构（新增字段加粗）</h4>
+        <pre class="mono" style="font-size:10.5px;line-height:1.62;background:#f6f9fd;border:1px solid #e6edf7;border-radius:8px;padding:9px 11px;margin:7px 0 0;color:#334155;overflow:auto">{
+  "conclusion": "认可|部分认可|不认可",
+  "review_result": "confirmed|partial|rejected",
+  "info_check": "...", "authenticity": "...", "legality": "...",
+  "amount_review": "...", "suggested_principal": 0,
+  "suggested_interest": 0, "suggested_others": 0,
+  "nature_review": "...", "material_evidence": ["..."],
+  "review_process": [{"level":1,"name":"主体资格",
+     "result":"通过","detail":"...（依据：工程款-1）"}],
+  "legal_basis": ["《企业破产法》第46条第2款：..."],
+  "standard_refs": ["工程款-2","工程款-3"],
+  "risks": ["..."], "summary": "..."
+}</pre>
+      </div>
+    </div>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 五、数据需求</span><span>27</span></div>
+</section>
+
+<!-- ================= 28 数据质量 ================= -->
+<section class="slide sec-data" data-sec="08 数据质量" data-title="数据质量规则 · 8 类脏数据处理">
+  <div class="s-head"><div class="eyebrow">08 · 数据质量</div><h2>数据质量规则：每一类脏数据都有处理方式</h2>
+    <div class="lead">破产项目的台账往往来自多处（人工录入、Excel 导入、云端申报、解析回填），脏数据是常态，关键是"可识别、可纠正"。</div></div>
+  <div class="body">
+    <table class="tbl tight">
+      <tr><th style="width:30%">规则</th><th>处理方式</th></tr>
+      <tr><td class="k">债权性质非标准值</td><td>统计时按同义映射归入 7 类；无法归类显示「未标注」（若「未标注」偏多，提示台账性质填写不规范）</td></tr>
+      <tr><td class="k">状态字段历史脏值</td><td>兼容映射（如"确认"→已复核），统计不受污染</td></tr>
+      <tr><td class="k">申报总额与分项不一致</td><td>初审/编辑保存时按分项汇总覆盖（分项全为 0 时保留原总额）；弹窗事前给出橙色差异提示</td></tr>
+      <tr><td class="k">长数字（信用代码 / 账号）</td><td>文本存储，导入时防精度丢失</td></tr>
+      <tr><td class="k">删除债权的子表残留</td><td>改用 ORM 级联删除子表行（原 bulk delete 会残留孤儿行）；提供孤儿行检查/清理脚本</td></tr>
+      <tr><td class="k">字段提取中断</td><td>按字段类型分别判空（数值比数值、文本比字符串），避免中文文本触发数值转换异常导致整笔解析失败</td></tr>
+      <tr><td class="k">无材料债权（Excel 导入行）</td><td>解析状态置 <code>empty</code>，不参与解析自愈，避免长期显示"待解析"或被误判为失败</td></tr>
+      <tr><td class="k">解析卡死 / 服务重启中断</td><td>记录 <code>parse_started_at</code>；超 30 分钟未完成或线程消失 → 自动标记 <code>failed</code> 并写明原因；解析中再次触发返回 409</td></tr>
+      <tr><td class="k">日期年份被改写</td><td>提取后按材料原文校正：若提取日期的年份未在材料中出现、而相同月日在材料中出现，则采用材料年份</td></tr>
+      <tr><td class="k">破产受理日缺失</td><td>AI 审查时明确"无法判断"并写入 risks；台账与审查页显示橙色补填提示</td></tr>
+    </table>
+  </div>
+  <div class="note">这页可以简洁带过，重点讲最后四条——它们都是本版真实遇到并修掉的问题，说明系统在"脏数据"上不是理想化假设。</div>
+  <div class="s-foot"><span>PRD V3.1 · 5.3</span><span>28</span></div>
+</section>
+
+<!-- ================= 29 非功能 ================= -->
+<section class="slide sec-accept" data-sec="09 非功能" data-title="非功能需求 · 性能成本安全">
+  <div class="s-head"><div class="eyebrow">09 · 非功能需求</div><h2>性能 · 成本 · 可用 · 安全 · 可维护 · 审计</h2></div>
+  <div class="body">
+    <div class="grid g2">
+      <div class="card"><h4>⚡ 性能</h4>
+        <ul style="font-size:12px;line-height:1.7;margin-top:5px">
+          <li>台账 / 看板接口响应 <b>&lt; 1s</b>（千笔级数据）</li>
+          <li>OCR 解析单份扫描件 10–60s（异步不阻塞）</li>
+          <li>单笔 AI 审查 10–30s（deepseek-chat 实测）</li>
+        </ul></div>
+      <div class="card"><h4>💰 AI 成本</h4>
+        <ul style="font-size:12px;line-height:1.7;margin-top:5px">
+          <li>full 档提示词约 2,060 字符；类型标准命中再 +300~600 字符</li>
+          <li>单笔输入约 <b>4,200–4,600 tokens</b>（旧版实测 3,588）</li>
+          <li>可用 <code>AI_PROMPT_PROFILE=basic</code> 回退；<code>AI_MAX_TOKENS</code> 默认 12000 足以容纳思考与正文</li>
+        </ul></div>
+      <div class="card"><h4>🛡 可用性</h4>
+        <ul style="font-size:12px;line-height:1.7;margin-top:5px">
+          <li>无 AI 配置时功能可用（规则引擎降级）</li>
+          <li>解析失败不影响其他记录；单笔审查失败可重试</li>
+        </ul></div>
+      <div class="card"><h4>🔒 安全</h4>
+        <ul style="font-size:12px;line-height:1.7;margin-top:5px">
+          <li>数据本地存储；云端申报接口令牌鉴权</li>
+          <li>管理员令牌不落前端；密钥仅存数据库 / <code>.env</code></li>
+        </ul></div>
+      <div class="card"><h4>🔧 可维护</h4>
+        <ul style="font-size:12px;line-height:1.7;margin-top:5px">
+          <li>数据库自动补列升级（老库无缝兼容新版本）</li>
+          <li>提示词版本化记录；关键操作有脚本化工具与回归测试</li>
+        </ul></div>
+      <div class="card" style="border-color:#fcd34d;background:#fffbf0"><h4 style="color:#b45309">📜 审计（全程留痕）</h4>
+        <p style="color:#7c5a1e">解析引擎、AI 模型名、<b>提示词版本、注入标准、引用条目</b>、审查人、复核时间、补充材料来源。</p></div>
+    </div>
+    <div class="callout" style="margin-top:13px">一句话总结非功能取向：<b>宁可慢一点、贵一点，也要让每个结论说得清来源</b>——这是法律文书场景与普通效率工具最大的区别。</div>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 六、非功能需求</span><span>29</span></div>
+</section>
+
+<!-- ================= 30 验收标准 ================= -->
+<section class="slide sec-accept" data-sec="10 验收" data-title="验收标准 · 逐模块要点">
+  <div class="s-head"><div class="eyebrow">10 · 验收标准</div><h2>怎么算交付完成：15 项模块级验收要点</h2></div>
+  <div class="body">
+    <table class="tbl tight">
+      <tr><th style="width:18%">模块</th><th>验收要点</th></tr>
+      <tr><td class="k">解析识别</td><td>上传扫描件 PDF → 自动生成债权编号、进度面板显示引擎标识、字段正确预填台账；连续上传无需刷新</td></tr>
+      <tr><td class="k">台账</td><td>25 项字段完整可编辑、列可配置（默认 8 列）、操作列固定、核减列正确、预览页可看原件</td></tr>
+      <tr><td class="k">台账交互</td><td>空项目 4 张动作卡 / 有数据一行操作条；行内仅 1 个主按钮 + ⋯ 菜单；点行进入审查工作台；统计卡与分段按钮联动；筛选标签可单个移除</td></tr>
+      <tr><td class="k">登记流程</td><td>待登记行主按钮为「✎ 初审 / 编辑」；保存后自动登记（无名称则保持待登记）；取消登记保留材料与审查记录；两总额只读汇总且差异有提示</td></tr>
+      <tr><td class="k">补充材料</td><td>新材料并入同一预览页并标注「补充」；只解析新文件；提取信息只补空；AI 结论重置、状态退回已登记、人工意见与金额保留</td></tr>
+      <tr><td class="k">AI 审查</td><td>输出含 7 级决策树、法律依据、材料证据、建议金额；注入标准与 <code>standard_refs</code> 正确落库并展示；无法连接时降级不报错</td></tr>
+      <tr><td class="k">类型化标准</td><td>借贷类命中「借贷」标准并出现 LPR 4 倍表述；工程款类命中「工程款」标准并出现 18 个月 / 优先受偿表述；<b>真实台账命中率 ≥ 60%</b></td></tr>
+      <tr><td class="k">人工复核</td><td>审核金额、结论、确认性质可保存；状态更新为已复核</td></tr>
+      <tr><td class="k">意见书</td><td>预览可编辑并保存编辑稿；导出 Word 公文格式正确、<b>不含审查过程与标准编号</b>、内容与编辑稿一致</td></tr>
+      <tr><td class="k">在线申报</td><td>第 6 节为证据目录表（8 行 2 列可加行）；材料按「证据名称-原文件名」入库；旧版上传区与扫描件槽位已移除；云端地址可复制、拉取导入幂等、同名查重提示</td></tr>
+      <tr><td class="k">数据后台</td><td>三组结论笔数金额与逐笔复算一致；已确认组含性质明细；未出结论计数正确；四张构成图数据正确；金额区间分布与种类统计已下线</td></tr>
+      <tr><td class="k">批量操作</td><td>批量登记缺名称自动跳过；批量 AI 审查完成率与失败原因可读；导出选中仅含选中债权且按传入顺序</td></tr>
+      <tr><td class="k">明细查询</td><td>名称 / 信用代码 / 性质 / 金额区间筛选正确；表头排序与合计行正确</td></tr>
+      <tr><td class="k">导入导出</td><td>Excel 往返一致（导出→导入无错位）；批量意见书 zip 完整；<code>ids</code> 导出不含未选债权</td></tr>
+      <tr><td class="k">数据完整性</td><td>删除债权后无孤儿材料 / 审查行；已登记债权重新解析不再中断、提取信息能同步</td></tr>
+    </table>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 七、验收标准</span><span>30</span></div>
+</section>
+
+<!-- ================= 31 验证证据 ================= -->
+<section class="slide sec-accept" data-sec="10 验证证据" data-title="验证证据 · 脚本与实测结果">
+  <div class="s-head"><div class="eyebrow">10 · 验证证据</div><h2>不是"应该可以"，而是"跑过一遍"</h2>
+    <div class="lead">后端用例全部使用临时数据、跑完自动清理，不影响真实台账。</div></div>
+  <div class="body">
+    <div class="grid g2">
+      <div class="card">
+        <h4>后端验证脚本（6 套）</h4>
+        <table class="tbl tight" style="margin-top:6px">
+          <tr><td class="k" style="width:44%">_test_audit_standards.py</td><td>类型匹配 9 例 + <b>真实台账命中率</b> + 借贷/工程款两笔真实审查的注入标准与 <code>standard_refs</code> 校验</td></tr>
+          <tr><td class="k">_test_supplement.py</td><td>补充材料全流程（追加、只解析新增、只补空、审查重置）</td></tr>
+          <tr><td class="k">_test_edit_register.py</td><td>自动登记 / 取消登记 / 总额汇总 / 异常分支</td></tr>
+          <tr><td class="k">_test_dashboard_groups.py</td><td>看板三组口径<b>逐笔复算</b>核对</td></tr>
+          <tr><td class="k">_test_export_ids.py</td><td>按选中导出 xlsx / zip 内容核对</td></tr>
+          <tr><td class="k">_test_delete_cleanup.py</td><td>删除后孤儿行检查</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h4>界面回归测试（jsdom，8 套）</h4>
+        <div class="chips" style="margin-top:7px">
+          <span class="chip">test_ledger_ui</span><span class="chip">test_ledger_actions</span><span class="chip">test_ledger_p1p2</span>
+          <span class="chip">test_edit_register_ui</span><span class="chip">test_supplement_ui</span><span class="chip">test_dashboard</span>
+          <span class="chip">test_audit_panel</span><span class="chip">test_apply</span>
+        </div>
+        <p style="margin-top:9px;font-size:11.5px">覆盖行内主按钮判定、⋯ 菜单项、双 Tab 路由、筛选标签、登记弹窗汇总与提示、补充材料弹窗、看板三组与四图、AI 面板追溯行、申报页证据目录等关键交互。</p>
+        <div class="hr"></div>
+        <h4>运维核对脚本</h4>
+        <p><code>_clean_orphans.py</code>（孤儿行检查/清理）、<code>_verify_dash.py</code>（看板打印核对）、<code>_check_served.py</code>（前端版本核对）。</p>
+      </div>
+    </div>
+    <div class="grid g4" style="margin-top:13px">
+      <div class="card tint" style="text-align:center"><div class="num-lg">22/32</div><p>真实台账类型标准命中（升级前 0/32）</p></div>
+      <div class="card tint" style="text-align:center"><div class="num-lg">68.75%</div><p>命中率，验收线 ≥ 60%</p></div>
+      <div class="card tint" style="text-align:center"><div class="num-lg">14/14</div><p>页面结构布局回归用例</p></div>
+      <div class="card tint" style="text-align:center"><div class="num-lg">6 + 8</div><p>后端 + 界面测试套件全绿</p></div>
+    </div>
+  </div>
+  <div class="note">有人质疑 AI 效果时，用这页回答：类型标准命中率是脚本跑出来的，看板三组金额是逐笔复算过的，界面交互有回归用例。<b>不要承诺"AI 结论 100% 正确"</b>——承诺的是"结论可追溯、可复核、可降级"。</div>
+  <div class="s-foot"><span>PRD V3.1 · 附录 C</span><span>31</span></div>
+</section>
+
+<!-- ================= 32 Roadmap ================= -->
+<section class="slide sec-accept" data-sec="11 Roadmap" data-title="后续版本规划 Roadmap">
+  <div class="s-head"><div class="eyebrow">11 · 后续规划</div><h2>Roadmap：从"工具"走向"流程平台"</h2>
+    <div class="lead">V3.1 交付后，下一步围绕三个方向：知识外置、权限与审计、对外协同。</div></div>
+  <div class="body">
+    <table class="tbl">
+      <tr><th style="width:12%">版本</th><th>规划功能</th><th style="width:12%" class="c">状态</th></tr>
+      <tr><td class="k">V3.1</td><td>AI 审查标准升级与可追溯、台账交互重构、登记流程改造、补充材料、数据后台改版、批量操作、云端申报页证据目录</td><td class="c"><span class="pill ok">本次交付</span></td></tr>
+      <tr><td class="k">V3.2</td><td>提示词知识库外置（<code>knowledge/*.md</code>，SKILL 更新可同步）；审查标准片段按类型检索注入；未标注性质批量校正工具</td><td class="c"><span class="pill mut">规划</span></td></tr>
+      <tr><td class="k">V3.3</td><td>登录鉴权与角色权限（登记员 / 复核员 / 管理员）；操作日志审计</td><td class="c"><span class="pill mut">规划</span></td></tr>
+      <tr><td class="k">V3.4</td><td>债权表（债权确认表）自动生成与异议期管理；债权人异议流程线上化</td><td class="c"><span class="pill mut">规划</span></td></tr>
+      <tr><td class="k">V3.5</td><td>明细页导出当前筛选结果；看板图表导出图片；多项目横向对比</td><td class="c"><span class="pill mut">规划</span></td></tr>
+      <tr><td class="k">V4.0</td><td>破产财产分配测算辅助；与法院破产案件管理系统数据对接（视接口开放情况）</td><td class="c"><span class="pill mut">规划</span></td></tr>
+    </table>
+    <div class="grid g3" style="margin-top:13px">
+      <div class="callout"><b>知识外置（V3.2）：</b>把提示词里的审查标准搬到可维护的 Markdown 知识库，业务方改标准不必改代码。</div>
+      <div class="callout"><b>权限与审计（V3.3）：</b>补上目前唯一的明显短板——无登录鉴权，仅限可信内网使用。</div>
+      <div class="callout"><b>异议流程（V3.4）：</b>债权表生成后进入异议期管理，把"审查结果"延伸到"债权确认"闭环。</div>
+    </div>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 九、Roadmap</span><span>32</span></div>
+</section>
+
+<!-- ================= 33 依赖与风险 ================= -->
+<section class="slide sec-accept" data-sec="11 依赖风险" data-title="依赖与风险 · 对策">
+  <div class="s-head"><div class="eyebrow">11 · 依赖与风险</div><h2>外部依赖 3 项 · 主要风险 7 项</h2></div>
+  <div class="body">
+    <table class="tbl tight">
+      <tr><th style="width:24%">依赖 / 风险</th><th style="width:34%">影响</th><th>对策</th></tr>
+      <tr><td class="k">MinerU Open API</td><td>扫描件云解析依赖</td><td>免费额度到期 → <b>自动回退本地 OCR</b>；可自部署 Docker 版替代</td></tr>
+      <tr><td class="k">大模型 API<br><span class="sm">DeepSeek / GLM / 第三方中转</span></td><td>接口失效 / 限流 / Key 过期 / 空返回</td><td>规则引擎降级、多配置切换；<b>第三方中转存在 Key 失效与空返回风险（已实测到 401 / 空内容），建议优先官方直连</b></td></tr>
+      <tr><td class="k">云端接收服务（阿里云 ECS）</td><td>公网在线申报需自行部署与维护</td><td>未部署时可用本地 / 内网申报；页面更新按 FR-12-5 流程同步</td></tr>
+      <tr><td class="k">台账字段录入不规范<br><span class="sm">性质填成种类、债权类型留空</span></td><td><b>类型化标准命中率下降</b>（实测 22/32，仍有 10 笔走通用标准）、统计口径失真</td><td>统计层同义归一并提示「未标注」；建议按 11 类标准填写「债权类型」；可扩展关键词表</td></tr>
+      <tr><td class="k">提示词升级改变结论口径</td><td>历史结论与新结论不可直接比较</td><td>审查记录保存 <code>prompt_version</code>；需对比时对同一批债权重跑并逐笔比对</td></tr>
+      <tr><td class="k">AI 审查结论偏差</td><td>增加复核负担</td><td>明确 AI 仅为辅助、须人工复核定稿；<code>standard_refs</code> + 决策树过程便于人工校验依据</td></tr>
+      <tr><td class="k">提示词变长导致模型注意力分散</td><td>结论漂移</td><td>提供 <code>AI_PROMPT_PROFILE=basic</code> 回退；A/B 重跑验证后再推广</td></tr>
+      <tr><td class="k">数据未备份</td><td>材料丢失</td><td>定期复制 <code>data/</code> 目录；数据库结构变更前先做 <code>.bak</code> 备份（V3.1 已建立该习惯）</td></tr>
+      <tr><td class="k">无登录鉴权</td><td>内网越权访问</td><td>仅限可信内网；后续可扩展登录口令（V3.3）</td></tr>
+      <tr><td class="k">云端申报页缓存</td><td>债权人看到旧版页面</td><td>已加 <code>no-cache</code> 响应头；已缓存浏览器需强刷一次，可临时用 <code>&amp;v=2</code> 刷新缓存键</td></tr>
+    </table>
+  </div>
+  <div class="s-foot"><span>PRD V3.1 · 八、依赖与风险</span><span>33</span></div>
+</section>
+
+<!-- ================= 34 现场演示脚本 ================= -->
+<section class="slide sec-end" data-sec="12 现场演示" data-title="现场演示脚本 · 6 步">
+  <div class="s-head"><div class="eyebrow">12 · 现场演示</div><h2>现场演示脚本（约 8–10 分钟）</h2>
+    <div class="lead">建议顺序：先跑通一笔，再展示批量与看板。演示前请确认后台服务已启动、已配置可用模型。</div></div>
+  <div class="body">
+    <div class="grid g2">
+      <div>
+        <div class="steps">
+          <div class="st"><div class="tx"><b>① 首页「数据进出」区</b>：指出四张动作卡 / 一行操作条，说明"上传、导入、在线申报、导出"四个入口。<span class="pill mut">FR-16</span></div></div>
+          <div class="st"><div class="tx"><b>② 新增债权申报</b>：拖入一份扫描件 PDF → 展示编号自动生成、解析进度面板与引擎标识（☁️ / 💻）→ 字段自动预填。<span class="pill mut">FR-02</span></div></div>
+          <div class="st"><div class="tx"><b>③ 行内「✎ 初审 / 编辑」</b>：改一个分项金额，指出申报总额/审核总额<b>自动汇总</b>；保存后状态变「已登记」——说明"保存即登记"。<span class="pill mut">FR-13</span></div></div>
+          <div class="st"><div class="tx"><b>④ 「🤖 AI 审查」</b>：等结果出后打开审查工作台，指读顶部追溯行「提示词 v2-2026-09 · 标准：×× · 引用：××-2、××-3」，展开 7 级决策树看各级 detail 与「（依据：××-3）」。<span class="pill vk">FR-04 重点</span></div></div>
+          <div class="st"><div class="tx"><b>⑤ 「✍️ 人工复核」</b>：审核金额默认带出 AI 建议值，选结论、选确认性质、填写意见并保存 → 台账出现<b>核减金额与比例</b>。<span class="pill mut">FR-05</span></div></div>
+          <div class="st"><div class="tx"><b>⑥ 补充材料 + 批量 + 看板</b>：「⋯ → 📎 补充材料」传一份新材料，展示「📎 补充」标识与审查结论被重置；回台账勾选 5 笔做「批量 AI 审查」；最后进「数据后台」看三组结论与四张构成图。<span class="pill vk">FR-14/15/08</span></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="border-color:#fcd34d;background:#fffbf0">
+          <h4 style="color:#b45309">⚠️ 演示前检查清单</h4>
+          <ul style="color:#7c5a1e;line-height:1.72;margin-top:6px">
+            <li>后台服务已启动，浏览器强刷（Ctrl+F5）加载最新前端</li>
+            <li>AI 设置中"测试连接"通过，顶栏徽标显示当前模型</li>
+            <li><b>项目已填写破产受理日</b>——否则时效/止息会输出"无法判断"</li>
+            <li>准备一笔"干净"的示例债权（材料完整、类型明确）</li>
+            <li>如需演示在线申报，提前打开云端申报地址并确认页面为最新版</li>
+          </ul>
+        </div>
+        <div class="card" style="margin-top:11px">
+          <h4>🎤 建议话术（三句）</h4>
+          <p style="margin-top:5px">1）"这套系统的目标不是替代管理人判断，而是让每一笔债权的录入更快、口径更齐、依据更清楚。"</p>
+          <p style="margin-top:5px">2）"AI 给出的每一句话，都能点开看它引用的是哪一类标准、哪一条。"</p>
+          <p style="margin-top:5px">3）"材料随时可以补，补完系统自动重审——台账不会因此出现重复债权。"</p>
+        </div>
+        <div class="callout" style="margin-top:11px"><b>演示操作提示：</b>本演示文稿按 <kbd>←</kbd><kbd>→</kbd> 翻页，<kbd>N</kbd> 显示/隐藏讲稿，<kbd>O</kbd> 打开总览跳转，<kbd>F</kbd> 全屏。</div>
+      </div>
+    </div>
+  </div>
+  <div class="s-foot"><span>演示脚本</span><span>34</span></div>
+</section>
+
+<!-- ================= 35 结尾 ================= -->
+<section class="slide sec-end" data-sec="结尾" data-title="结语 · 关键数字回顾">
+  <div class="s-head"><div class="eyebrow">结语</div><h2>V3.1 的一句话总结</h2>
+    <div class="lead">把方法论写进提示词，把口径差异做成标准，把每个结论的来源留在数据库里。</div></div>
+  <div class="body">
+    <div class="grid g4" style="margin-bottom:14px">
+      <div class="card tint" style="text-align:center"><div class="num-lg">7 → 20</div><p>通用审查规则</p></div>
+      <div class="card tint" style="text-align:center"><div class="num-lg">6 → 11</div><p>类型化审查标准</p></div>
+      <div class="card tint" style="text-align:center"><div class="num-lg">0 → 22<span class="u">/32</span></div><p>真实台账标准命中</p></div>
+      <div class="card tint" style="text-align:center"><div class="num-lg">1 → 3</div><p>看板结论口径（确认/暂缓/否定）</p></div>
+    </div>
+    <div class="grid g3">
+      <div class="card"><h4>对管理人</h4><p>少翻材料、少记要点：录入与初审由系统先跑一遍，人只做判断与定稿。</p></div>
+      <div class="card"><h4>对复核人</h4><p>结论可追溯：点开就看到提示词版本、注入标准、引用条目与案件信息，核对依据只需几秒。</p></div>
+      <div class="card"><h4>对案件管理</h4><p>进度可掌握：三组结论 + 四张构成图，申报额与已确认额一眼分明，核减结果逐笔可见。</p></div>
+    </div>
+    <div style="margin-top:26px;text-align:center">
+      <div style="font-size:22px;font-weight:800;letter-spacing:-.3px;color:#0f172a">谢谢 · 欢迎提问</div>
+      <p style="font-size:12.5px;color:#7c8aa0;margin-top:8px">破产管理人债权申报与审查系统 · PRD V3.1 · 2026-09</p>
+      <div class="chips" style="justify-content:center;margin-top:14px">
+        <span class="chip">待确认：两个项目补填破产受理日</span>
+        <span class="chip">待确认：历史回填的「已登记」标记是否清理</span>
+        <span class="chip">建议：录入时按 11 类填写「债权类型」</span>
+      </div>
+    </div>
+  </div>
+  <div class="note">收尾留三件事给业务方拍板：① 补填破产受理日（直接影响时效与止息结论）；② 历史回填的已登记标记是否保留；③ 后续录入尽量填写「债权类型」以提高类型标准命中率。</div>
+  <div class="s-foot"><span>PRD V3.1 · 结语</span><span>35</span></div>
+</section>
+
+</div></div>
+
+<div id="dots"></div>
+
+<div id="hud">
+  <div class="grp">
+    <button id="btnPrev" title="上一页（←）">‹</button>
+    <span class="sec" id="hudSec">封面</span>
+    <span class="cnt" id="hudCnt">1 / 35</span>
+    <button id="btnNext" title="下一页（→）">›</button>
+    <button id="btnOv" title="总览（O）">▦</button>
+    <button id="btnNote" title="讲稿（N）">✎</button>
+    <button id="btnFull" title="全屏（F）">⛶</button>
+  </div>
+</div>
+
+<div id="notes"><div class="nh">讲稿 / SPEAKER NOTES</div><div id="notesBody"></div></div>
+
+<div id="overview">
+  <div class="oh"><span>总览 · 点击跳转</span><small>按 O 或 Esc 关闭</small></div>
+  <div id="ovgrid"></div>
+</div>
+
+<div id="help">
+  <div class="box">
+    <h3>快捷键</h3>
+    <table>
+      <tr><td>← / → / ↑ / ↓</td><td>翻页</td></tr>
+      <tr><td>Space / PgUp / PgDn</td><td>下一页 / 上一页</td></tr>
+      <tr><td>Home / End</td><td>首页 / 末页</td></tr>
+      <tr><td>数字 + Enter</td><td>跳到指定页（如 12 回车）</td></tr>
+      <tr><td>O</td><td>总览（缩略目录）</td></tr>
+      <tr><td>N</td><td>显示 / 隐藏讲稿</td></tr>
+      <tr><td>F</td><td>全屏（投影演示推荐）</td></tr>
+      <tr><td>B</td><td>黑屏（暂停讲解时）</td></tr>
+      <tr><td>? 或 H</td><td>本帮助</td></tr>
+      <tr><td>Esc</td><td>关闭浮层</td></tr>
+    </table>
+  </div>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total  = slides.length;
+  var cur    = 0;
+  var notesOn = false, ovOn = false, helpOn = false, blackOn = false;
+  var stage  = document.getElementById('stage');
+  var dotsEl = document.getElementById('dots');
+  var hudCnt = document.getElementById('hudCnt');
+  var hudSec = document.getElementById('hudSec');
+  var notesEl= document.getElementById('notes');
+  var notesBody = document.getElementById('notesBody');
+  var ovEl   = document.getElementById('overview');
+  var ovGrid = document.getElementById('ovgrid');
+  var helpEl = document.getElementById('help');
+  var prog   = document.querySelector('#progress i');
+  var numBuf = '';
+
+  /* ---- 内容自适应：内容超出可用高度时整体等比缩小，确保投影不截断 ---- */
+  function fitContent(){
+    slides.forEach(function(sl){
+      var b = sl.querySelector('.body');
+      if (!b || b.dataset.fit === '1') return;
+      b.dataset.fit = '1';
+      var H = b.clientHeight, Hc = b.scrollHeight;
+      if (Hc <= H + 2) return;
+      var k = Math.max(0.62, H / Hc);
+      var wrap = document.createElement('div');
+      wrap.style.transformOrigin = 'top center';
+      wrap.style.transform = 'scale(' + k + ')';
+      while (b.firstChild) wrap.appendChild(b.firstChild);
+      b.appendChild(wrap);
+      b.style.overflow = 'hidden';
+      b.dataset.scaled = '1';
+    });
+  }
+
+  /* ---- 缩放：固定 1280×720 舞台等比适配 ---- */
+  function fit(){
+    var reserve = (notesOn ? 152 : 0);
+    var w = window.innerWidth - 48;
+    var h = window.innerHeight - 88 - reserve;
+    var s = Math.min(w / 1280, h / 720);
+    if (s > 1.6) s = 1.6;
+    stage.style.transform = 'scale(' + s + ')';
+    document.getElementById('hud').style.bottom = (notesOn ? 160 : 12) + 'px';
+    dotsEl.style.bottom = (notesOn ? 192 : 44) + 'px';
+  }
+
+  /* ---- HUD / 进度 / 圆点 ---- */
+  for (var d = 0; d < total; d++){
+    var sp = document.createElement('span');
+    sp.setAttribute('data-i', d);
+    sp.title = (d + 1) + '. ' + (slides[d].getAttribute('data-title') || '');
+    dotsEl.appendChild(sp);
+    var ov = document.createElement('div');
+    ov.className = 'ov';
+    ov.setAttribute('data-i', d);
+    ov.innerHTML = '<div class="st"></div><div class="no">' + String(d + 1).padStart(2, '0') + '</div>' +
+                   '<div class="tt">' + (slides[d].getAttribute('data-title') || '') + '</div>';
+    ovGrid.appendChild(ov);
+  }
+  var dotNodes = Array.prototype.slice.call(dotsEl.children);
+  var ovNodes  = Array.prototype.slice.call(ovGrid.children);
+
+  function notesOf(i){
+    var n = slides[i].querySelector('.note');
+    return n ? n.innerHTML : '<span style="opacity:.55">（本页无讲稿）</span>';
+  }
+
+  function go(n, silent){
+    if (n < 0) n = 0;
+    if (n > total - 1) n = total - 1;
+    slides[cur].classList.remove('active');
+    cur = n;
+    slides[cur].classList.add('active');
+    slides[cur].scrollTop = 0;
+    var b = slides[cur].querySelector('.body'); if (b) b.scrollTop = 0;
+    hudCnt.textContent = (cur + 1) + ' / ' + total;
+    hudSec.textContent = slides[cur].getAttribute('data-sec') || '';
+    prog.style.width = ((cur + 1) / total * 100) + '%';
+    dotNodes.forEach(function(x, k){ x.classList.toggle('on', k === cur); });
+    ovNodes.forEach(function(x, k){ x.classList.toggle('on', k === cur); });
+    if (notesOn) notesBody.innerHTML = notesOf(cur);
+    if (!silent){ try { history.replaceState(null, '', '#/' + (cur + 1)); } catch(e){} }
+  }
+  function next(){ go(cur + 1); }
+  function prev(){ go(cur - 1); }
+  function toggleNotes(){
+    notesOn = !notesOn;
+    notesEl.classList.toggle('show', notesOn);
+    if (notesOn) notesBody.innerHTML = notesOf(cur);
+    fit();
+  }
+  function toggleOverview(force){
+    ovOn = (typeof force === 'boolean') ? force : !ovOn;
+    ovEl.classList.toggle('show', ovOn);
+  }
+  function toggleHelp(force){
+    helpOn = (typeof force === 'boolean') ? force : !helpOn;
+    helpEl.classList.toggle('show', helpOn);
+  }
+  function toggleBlack(){
+    blackOn = !blackOn;
+    stage.style.visibility = blackOn ? 'hidden' : '';
+  }
+
+  /* ---- 事件 ---- */
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if (k === 'Escape'){ toggleOverview(false); toggleHelp(false); if (blackOn) toggleBlack(); numBuf=''; return; }
+    if (k === '?' || k === 'h' || k === 'H'){ e.preventDefault(); toggleHelp(); return; }
+    if (k >= '0' && k <= '9'){
+      numBuf += k;
+      if (ovOn) return;
+      clearTimeout(window.__nb);
+      window.__nb = setTimeout(function(){ numBuf = ''; }, 1200);
+      return;
+    }
+    if (k === 'Enter' && numBuf){ go(parseInt(numBuf, 10) - 1); numBuf = ''; return; }
+    switch (k){
+      case 'ArrowRight': case 'ArrowDown': case 'PageDown': case ' ': e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'ArrowUp': case 'PageUp': e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(total - 1); break;
+      case 'o': case 'O': toggleOverview(); break;
+      case 'n': case 'N': toggleNotes(); break;
+      case 'f': case 'F':
+        if (!document.fullscreenElement){ if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+        else if (document.exitFullscreen) document.exitFullscreen();
+        break;
+      case 'b': case 'B': toggleBlack(); break;
+    }
+  });
+
+  document.getElementById('btnPrev').addEventListener('click', prev);
+  document.getElementById('btnNext').addEventListener('click', next);
+  document.getElementById('btnOv').addEventListener('click', function(){ toggleOverview(); });
+  document.getElementById('btnNote').addEventListener('click', toggleNotes);
+  document.getElementById('btnFull').addEventListener('click', function(){
+    if (!document.fullscreenElement){ if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
+    else if (document.exitFullscreen) document.exitFullscreen();
+  });
+  dotsEl.addEventListener('click', function(e){
+    var t = e.target; if (t.tagName === 'SPAN') go(parseInt(t.getAttribute('data-i'), 10));
+  });
+  ovGrid.addEventListener('click', function(e){
+    var el = e.target.closest('.ov'); if (!el) return;
+    go(parseInt(el.getAttribute('data-i'), 10)); toggleOverview(false);
+  });
+  ovEl.addEventListener('click', function(e){ if (e.target === ovEl) toggleOverview(false); });
+  helpEl.addEventListener('click', function(e){ if (e.target === helpEl) toggleHelp(false); });
+
+  /* 触屏滑动 */
+  var tx0 = null, ty0 = null;
+  window.addEventListener('touchstart', function(e){ tx0 = e.touches[0].clientX; ty0 = e.touches[0].clientY; }, {passive:true});
+  window.addEventListener('touchend', function(e){
+    if (tx0 === null) return;
+    var dx = e.changedTouches[0].clientX - tx0, dy = e.changedTouches[0].clientY - ty0;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) { dx < 0 ? next() : prev(); }
+    tx0 = null;
+  }, {passive:true});
+
+  /* 鼠标滚轮翻页（同页内可滚动内容优先滚动） */
+  window.addEventListener('wheel', function(e){
+    if (ovOn || helpOn) return;
+    var b = slides[cur].querySelector('.body');
+    var scrollable = b && b.dataset.scaled !== '1' && b.scrollHeight > b.clientHeight + 4;
+    if (scrollable){
+      var atTop = b.scrollTop <= 0, atBot = b.scrollTop + b.clientHeight >= b.scrollHeight - 1;
+      if (!(e.deltaY > 0 && atBot) && !(e.deltaY < 0 && atTop)) return;
+    }
+    if (Date.now() - (window.__lastW || 0) < 420) return;
+    window.__lastW = Date.now();
+    e.deltaY > 0 ? next() : prev();
+  }, {passive:true});
+
+  window.addEventListener('resize', fit);
+  document.addEventListener('fullscreenchange', function(){ setTimeout(fit, 120); });
+
+  /* 初始页：支持 #/12 直达 */
+  var m = /#\/(\d+)/.exec(location.hash);
+  go(m ? Math.max(0, Math.min(total - 1, parseInt(m[1], 10) - 1)) : 0, true);
+  if (!m) { try { history.replaceState(null, '', '#/1'); } catch(e){} }
+  fit();
+  /* 等字体与布局稳定后再做一次内容自适应 */
+  requestAnimationFrame(function(){ fitContent(); fit(); });
+  window.addEventListener('load', function(){ fitContent(); fit(); });
+})();
+</script>
+</body>
+</html>

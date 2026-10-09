@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>债权在线申报</title>
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  .apply-hero { text-align: center; padding: 26px 0 8px; }
+  .apply-hero .proj { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+  .apply-hero .sub { color: var(--text-2); font-size: 14px; }
+  .apply-card { max-width: 760px; margin: 16px auto 40px; }
+  .apply-card .card { margin-bottom: 16px; }
+  .apply-card h3 { margin-bottom: 14px; }
+  .hint { font-size: 12px; color: var(--text-2); margin-top: 4px; }
+  .file-list { margin-top: 10px; }
+  .file-item { display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 6px; font-size: 13px; background: #fafafa; }
+  .file-item .del { cursor: pointer; color: #e05656; font-weight: 600; }
+  #submitBtn:disabled { opacity: .6; cursor: not-allowed; }
+  /* 必填项标记：红色星号 */
+  .field label .req { color: #e05656; font-weight: 700; }
+  /* 必填项缺失时输入框高亮 */
+  .field input.missing { border-color: #e05656; box-shadow: 0 0 0 3px rgba(224,86,86,.12); }
+</style>
+</head>
+<body>
+<main class="container">
+  <div class="apply-hero">
+    <div class="proj" id="projName">债权申报</div>
+    <div class="sub">请如实填写债权信息并上传申报材料，提交后等待管理人审核</div>
+  </div>
+
+  <div class="apply-card" id="applyCard">
+    <div class="card">
+      <h3>📋 债权人信息</h3>
+      <div class="grid-2">
+        <div class="field"><label>债权人名称 <span class="req">*</span></label><input id="f_name" placeholder="单位全称 / 个人姓名" maxlength="200"></div>
+        <div class="field"><label>统一社会信用代码 / 身份证号码 <span class="req">*</span></label><input id="f_credit_code" placeholder="单位填统一社会信用代码，个人填身份证号" maxlength="100" required></div>
+        <div class="field"><label>法定代表人 / 负责人</label><input id="f_legal_rep" maxlength="100"></div>
+        <div class="field"><label>联系方式 <span class="req">*</span></label><input id="f_contact" placeholder="电话 / 手机" maxlength="200"></div>
+      </div>
+      <div class="field"><label>联系地址</label><input id="f_address"></div>
+    </div>
+
+    <div class="card">
+      <h3>💰 债权信息</h3>
+      <div class="grid-2">
+        <div class="field">
+          <label>债权种类</label>
+          <select id="f_category">
+            <option value="">请选择</option>
+            <option>借贷</option><option>购销</option><option>金融</option>
+            <option>工程款</option><option>职工</option><option>税收</option><option>其他</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>申报债权性质</label>
+          <select id="f_nature">
+            <option value="">请选择</option>
+            <option>普通债权</option><option>工程款优先权</option><option>抵押债权</option>
+            <option>税收债权</option><option>职工债权</option><option>其他</option>
+          </select>
+        </div>
+        <div class="field"><label>申报债权时间</label><input id="f_date" type="date"></div>
+        <div class="field"><label>申报本金（元）</label><input id="f_principal" inputmode="decimal" placeholder="0.00"></div>
+        <div class="field"><label>申报利息（元）</label><input id="f_interest" inputmode="decimal" placeholder="0.00"></div>
+        <div class="field"><label>申报其他费用（元）</label><input id="f_others" inputmode="decimal" placeholder="0.00"></div>
+      </div>
+      <div class="field">
+        <label>申报总额（元）* <span class="hint" style="display:inline">未填写时按 本金+利息+其他 自动计算</span></label>
+        <input id="f_amount" inputmode="decimal" placeholder="0.00">
+      </div>
+      <div class="field"><label>补充说明</label><textarea id="f_remark" rows="3" placeholder="债权形成经过、担保情况等（选填）"></textarea></div>
+    </div>
+
+    <div class="card">
+      <h3>📎 申报材料</h3>
+      <div class="dropzone" onclick="$('#fileInput').click()">
+        <div class="dz-icon">📤</div>
+        <div class="dz-text">点击选择申报材料（可多选：图片 / PDF / Word / 文本）</div>
+        <div class="dz-hint">每份材料建议扫描清晰，单个文件不超过 50MB</div>
+        <input type="file" id="fileInput" multiple hidden
+          accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.bmp,.tif,.tiff,.webp">
+      </div>
+      <div class="file-list" id="fileList"></div>
+    </div>
+
+    <div style="text-align:center">
+      <button class="btn btn-primary" id="submitBtn" style="min-width:220px;padding:12px 20px;font-size:15px" onclick="submitApply()">提交申报</button>
+      <div class="hint" style="margin-top:8px">提交即表示所填信息与材料真实有效</div>
+    </div>
+  </div>
+
+  <div class="apply-card" id="doneCard" style="display:none">
+    <div class="card" style="text-align:center;padding:48px 24px">
+      <div style="font-size:44px">✅</div>
+      <h3 style="margin:12px 0 6px">申报提交成功</h3>
+      <div style="color:var(--text-2);margin-bottom:16px">您的申报已受理，管理人审核后会与您联系</div>
+      <div class="stat-card" style="display:inline-block;min-width:220px">
+        <div class="num" id="doneNo">WS-0001</div>
+        <div class="label">申报流水号（请保存）</div>
+      </div>
+      <div style="margin-top:24px"><button class="btn" onclick="location.reload()">再次申报</button></div>
+    </div>
+  </div>
+</main>
+
+<script src="/js/apply.js"></script>
+</body>
+</html>
